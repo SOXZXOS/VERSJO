@@ -882,7 +882,7 @@
     .view { display: none; }
     .view.active { display: grid; }
 
-    @media (max-width: 1120px) {
+    @media (max-width: 900px) {
       .content { grid-template-columns: 1fr; }
       .detail { position: static; max-height: none; }
       #catchView .stats { max-width: none; }
@@ -898,13 +898,18 @@
       .storage-status { text-align: left; }
       .content { padding: 14px; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .filters { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filters .field:first-child { grid-column: 1 / -1; }
       .form-grid { grid-template-columns: 1fr; }
       .kv { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
       .app-logo h1 { font-size: 21px; }
+      .topbar { gap: 12px; }
+      .toolbar {
+        gap: 8px;
+      }
       .segmented {
         display: flex;
         width: 100%;
@@ -913,12 +918,29 @@
         flex: 1 1 0;
         min-width: 0;
       }
-      .stats { grid-template-columns: 1fr; }
+      .stat {
+        min-height: 76px;
+        padding: 12px;
+      }
+      .stat strong { font-size: 23px; }
       .table-wrap { overflow-x: auto; }
       .dialog { width: min(96vw, 640px); }
       .map-panel,
       .map-detail {
         min-height: 300px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .filters { grid-template-columns: 1fr; }
+      .filters .field:first-child { grid-column: auto; }
+      .user-session {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .primary-btn,
+      .ghost-btn {
+        padding: 0 10px;
       }
     }
   </style>
