@@ -694,6 +694,12 @@
       box-shadow: var(--shadow);
     }
 
+    .map-action {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
     .catch-map {
       display: grid;
       min-height: 0;
@@ -1042,6 +1048,10 @@
         margin-left: 0;
       }
 
+      .map-action .primary-btn {
+        width: 100%;
+      }
+
       .map-filters {
         align-items: stretch;
         flex-direction: column;
@@ -1202,9 +1212,8 @@
           <div>
             <p class="eyebrow">Alle registrerte posisjoner</p>
             <h2>Fangstkart</h2>
-            <p class="intro">Punktene viser fangstene som er lagret på denne enheten.</p>
+            <p class="intro">Punktene viser de delte fangstene fra alle fiskerne.</p>
           </div>
-          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
 
         <section class="map-filters" aria-label="Filtrer fangstkartet">
@@ -1244,6 +1253,9 @@
               <span>Ingen fangst valgt</span>
             </div>
           </div>
+        </div>
+        <div class="map-action">
+          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
       </section>
     </main>
@@ -1340,6 +1352,9 @@
     const STORAGE_KEY = "regiversj.catches.v2";
     const PREVIOUS_STORAGE_KEY = "wobblerregister.v1";
     const USER_KEY = "regiversj.currentUser";
+    const PENDING_KEY = "regiversj.pendingChanges.v1";
+    const SHARED_MIGRATION_KEY = "regiversj.sharedMigration.v1";
+    const SHARED_API_URL = "/api/catches";
     const USERS = ["Bjarne", "Knut Arne", "Frode"];
     const USER_COLORS = {
       "Bjarne": "#2a7bdf",
@@ -1362,6 +1377,8 @@
     let editingCatchId = "";
     let selectedMapPosition = MAP_CENTER;
     let storageWorks = false;
+    let sharedStorageWorks = null;
+    let sharedSyncPromise = null;
 
     const elements = {
       app: document.querySelector("#app"),
@@ -1519,7 +1536,147 @@
     }
 
     function updateStorageStatus() {
-      elements.storageStatus.textContent = storageWorks ? "" : "Lagring er ikke tilgjengelig";
+      if (!storageWorks) {
+        elements.storageStatus.textContent = "Lokal lagring er ikke tilgjengelig";
+        return;
+      }
+      if (sharedStorageWorks === false) {
+        elements.storageStatus.textContent = "Felles lagring er utilgjengelig";
+        return;
+      }
+      elements.storageStatus.textContent = "";
+    }
+
+    function readPendingChanges() {
+      try {
+        const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+        return Array.isArray(pending) ? pending : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writePendingChanges(changes) {
+      localStorage.setItem(PENDING_KEY, JSON.stringify(changes));
+    }
+
+    function queuePendingChange(change) {
+      const id = change.type === "delete" ? change.id : change.catch.id;
+      const pending = readPendingChanges().filter(item => {
+        const itemId = item.type === "delete" ? item.id : item.catch && item.catch.id;
+        return itemId !== id;
+      });
+      pending.push(change);
+      writePendingChanges(pending);
+    }
+
+    async function sharedRequest(method, payload) {
+      const options = {
+        method,
+        cache: "no-store",
+        headers: {
+          "Accept": "application/json"
+        }
+      };
+      if (payload) {
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(payload);
+      }
+
+      const response = await fetch(SHARED_API_URL, options);
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (error) {
+        result = {};
+      }
+      if (!response.ok) {
+        throw new Error(result.error || "Felles lagring svarte ikke.");
+      }
+      return result;
+    }
+
+    async function flushPendingChanges() {
+      const pending = readPendingChanges();
+      if (!pending.length) return;
+
+      const upserts = pending
+        .filter(item => item.type === "upsert" && item.catch)
+        .map(item => item.catch);
+      const deletions = pending
+        .filter(item => item.type === "delete" && item.id)
+        .map(item => item.id);
+
+      if (upserts.length) {
+        await sharedRequest("POST", { catches: upserts });
+      }
+      if (deletions.length) {
+        await sharedRequest("DELETE", { ids: deletions });
+      }
+      writePendingChanges([]);
+    }
+
+    function mergePendingChanges(sharedCatches) {
+      const merged = new Map(sharedCatches.map(item => [item.id, item]));
+      readPendingChanges().forEach(change => {
+        if (change.type === "delete") {
+          merged.delete(change.id);
+        } else if (change.type === "upsert" && change.catch) {
+          const item = normalizeCatch(change.catch);
+          merged.set(item.id, item);
+        }
+      });
+      return Array.from(merged.values());
+    }
+
+    async function syncSharedData(options = {}) {
+      if (sharedSyncPromise) return sharedSyncPromise;
+
+      sharedSyncPromise = (async () => {
+        try {
+          const shouldMigrate = options.migrate
+            && localStorage.getItem(SHARED_MIGRATION_KEY) !== "done";
+
+          if (shouldMigrate) {
+            catches.forEach(item => {
+              queuePendingChange({ type: "upsert", catch: item });
+            });
+          }
+
+          await flushPendingChanges();
+          const result = await sharedRequest("GET");
+          const remoteCatches = Array.isArray(result.catches)
+            ? result.catches.map(normalizeCatch)
+            : [];
+          catches = mergePendingChanges(remoteCatches);
+
+          if (shouldMigrate) {
+            localStorage.setItem(SHARED_MIGRATION_KEY, "done");
+          }
+
+          sharedStorageWorks = true;
+          saveData();
+
+          if (currentUser) {
+            const selectedBelongsToUser = catches.some(item => {
+              return item.id === selectedCatchId && item.createdBy === currentUser;
+            });
+            if (!selectedBelongsToUser) {
+              const newest = latestCatch(mine());
+              selectedCatchId = newest ? newest.id : "";
+            }
+            renderAll();
+          }
+        } catch (error) {
+          sharedStorageWorks = false;
+          updateStorageStatus();
+          console.warn("Kunne ikke synkronisere felles fangster", error);
+        } finally {
+          sharedSyncPromise = null;
+        }
+      })();
+
+      return sharedSyncPromise;
     }
 
     function showLogin() {
@@ -1750,6 +1907,7 @@
         button.classList.toggle("active", button.dataset.view === view);
       });
       if (view === "map") renderMap();
+      syncSharedData();
     }
 
     function openCatchModal(id = "") {
@@ -1780,8 +1938,12 @@
       catches = catches.filter(entry => entry.id !== id);
       const newest = latestCatch(mine());
       selectedCatchId = newest ? newest.id : "";
+      queuePendingChange({ type: "delete", id });
       saveData();
       renderAll();
+      syncSharedData().then(() => {
+        if (readPendingChanges().length) syncSharedData();
+      });
     }
 
     function submitCatch(event) {
@@ -1814,10 +1976,14 @@
       }
 
       selectedCatchId = catchData.id;
+      queuePendingChange({ type: "upsert", catch: catchData });
       saveData();
       closeCatchModal();
       setView("catches");
       renderAll();
+      syncSharedData().then(() => {
+        if (readPendingChanges().length) syncSharedData();
+      });
     }
 
     function clampMapValue(value) {
@@ -1961,6 +2127,15 @@
     testStorage();
     loadData();
     loadCurrentUser();
+    syncSharedData({ migrate: true });
+
+    window.addEventListener("focus", () => syncSharedData());
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) syncSharedData();
+    });
+    window.setInterval(() => {
+      if (!document.hidden) syncSharedData();
+    }, 20000);
   </script>
 </body>
 </html>
