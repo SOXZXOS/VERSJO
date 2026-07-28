@@ -1,1262 +1,1315 @@
-<!doctype html>
-<html lang="no">
+<!DOCTYPE html>
+<html lang="nb">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="RegiVersj">
   <title>RegiVersj</title>
-  <meta name="theme-color" content="#12323d">
   <style>
     :root {
-      color-scheme: light;
-      --ink: #14212b;
-      --muted: #5f6f7a;
-      --line: #d8e2e8;
-      --soft: #f4f7f8;
-      --panel: #ffffff;
-      --sea: #0f6b7a;
-      --sea-dark: #084d58;
-      --green: #23805b;
-      --amber: #b96b16;
-      --red: #bc3f3f;
-      --focus: #2a7bdf;
-      --shadow: 0 12px 28px rgba(16, 35, 45, .10);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --paper: #f5f5f7;
+      --surface: #ffffff;
+      --surface-strong: #ffffff;
+      --line: rgba(0, 0, 0, 0.09);
+      --green: #0071e3;
+      --green-dark: #0066cc;
+      --green-soft: #eaf4ff;
+      --blue: #0071e3;
+      --yellow: #ffcc00;
+      --danger: #ff3b30;
+      --shadow: 0 10px 32px rgba(0, 0, 0, 0.07);
+      --radius: 20px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--paper);
+      min-height: -webkit-fill-available;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid rgba(42, 111, 187, 0.26);
+      outline-offset: 2px;
+    }
 
     [hidden] {
       display: none !important;
     }
 
-    body {
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      padding-top: calc(24px + env(safe-area-inset-top));
+      padding-right: calc(24px + env(safe-area-inset-right));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      padding-left: calc(24px + env(safe-area-inset-left));
+      background:
+        linear-gradient(135deg, rgba(0, 113, 227, 0.92), rgba(88, 86, 214, 0.76)),
+        url("vergetjern-kart.png") center / cover;
+    }
+
+    .login-panel {
+      width: min(420px, 100%);
+      padding: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .brand h1 {
       margin: 0;
-      min-height: 100vh;
-      background: #eef3f5;
-      color: var(--ink);
+      font-size: 28px;
+      font-weight: 720;
+      letter-spacing: -0.04em;
     }
 
-    body.login-active .app {
-      display: none;
-    }
-
-    body:not(.login-active) .login-screen {
-      display: none;
-    }
-
-    button, input, select, textarea {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
+    .login-panel > p {
+      margin: 18px 0 28px;
+      color: var(--muted);
+      line-height: 1.55;
     }
 
     .app {
       min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .login-screen {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-
-    .login-panel {
-      width: min(100%, 380px);
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 24px;
-      display: grid;
-      gap: 22px;
-    }
-
-    .login-panel .app-logo {
-      justify-content: flex-start;
-    }
-
-    .login-form {
-      display: grid;
-      gap: 14px;
-    }
-
-    main {
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto 1fr;
+      min-height: -webkit-fill-available;
     }
 
     .topbar {
-      min-height: 78px;
-      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      min-height: 72px;
+      padding: 14px 28px;
+      padding-top: calc(14px + env(safe-area-inset-top));
+      padding-right: calc(28px + env(safe-area-inset-right));
+      padding-left: calc(28px + env(safe-area-inset-left));
       border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 16px 28px;
+      background: rgba(245, 245, 247, 0.86);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
     }
 
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      line-height: 1.2;
-      letter-spacing: 0;
-    }
-
-    .app-logo {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      min-height: 42px;
-      background: transparent;
-      color: var(--ink);
-      padding: 0;
-      text-align: left;
-    }
-
-    .app-logo:focus-visible {
-      outline: 3px solid rgba(15, 107, 122, .3);
-      outline-offset: 4px;
-      border-radius: 8px;
-    }
-
-    .logo-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 8px;
-      display: block;
-      box-shadow: inset 0 -10px 18px rgba(0,0,0,.12);
-    }
-
-    .app-logo h1 {
-      font-size: 25px;
-      font-weight: 800;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .user-session {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .storage-status {
-      color: var(--muted);
-      font-size: 12px;
-      min-height: 18px;
-      width: 100%;
-      text-align: right;
-    }
-
-    .storage-status.warning {
-      color: var(--red);
-      font-weight: 700;
-    }
-
-    .icon-btn,
-    .primary-btn,
-    .ghost-btn {
-      height: 40px;
-      border-radius: 7px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .icon-btn {
-      width: 40px;
-      background: var(--soft);
-      color: var(--ink);
-      border: 1px solid var(--line);
-    }
-
-    .close-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 7px;
-      background: #fff;
-      color: var(--ink);
-      border: 1px solid var(--line);
-      font-size: 24px;
-      line-height: 1;
+    .topbar .brand {
       flex: 0 0 auto;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
     }
 
-    .close-btn:hover {
-      background: #fbe2e2;
-      color: var(--red);
-      border-color: #efc4c4;
+    .topbar .brand img {
+      width: 38px;
+      height: 38px;
     }
 
-    .primary-btn {
-      background: var(--sea);
-      color: #fff;
-      padding: 0 14px;
-      font-weight: 700;
+    .topbar .brand h1 {
+      font-size: 23px;
     }
 
-    .primary-btn:hover {
-      background: var(--sea-dark);
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(118, 118, 128, 0.12);
     }
 
-    .segmented {
-      display: inline-flex;
-      height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      overflow: hidden;
-    }
-
-    .segmented button {
-      min-width: 112px;
-      padding: 0 12px;
-      background: #fff;
+    .nav-btn {
+      min-height: 38px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
       color: var(--muted);
-      font-weight: 700;
-      border-right: 1px solid var(--line);
+      font-weight: 650;
+      cursor: pointer;
     }
 
-    .segmented button:last-child {
-      border-right: 0;
-    }
-
-    .segmented button.active {
-      background: var(--sea);
-      color: #fff;
-    }
-
-    .ghost-btn {
-      background: #fff;
+    .nav-btn.active {
+      background: var(--surface-strong);
       color: var(--ink);
-      border: 1px solid var(--line);
-      padding: 0 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .session {
+      display: grid;
+      justify-items: end;
+      gap: 1px;
+      padding-right: 4px;
+    }
+
+    .session strong {
+      font-size: 14px;
       font-weight: 650;
     }
 
+    .text-button {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .storage-status {
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .page {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 32px 28px 52px;
+      padding-right: calc(28px + env(safe-area-inset-right));
+      padding-bottom: calc(52px + env(safe-area-inset-bottom));
+      padding-left: calc(28px + env(safe-area-inset-left));
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+
+    .page-heading h2 {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 720;
+      letter-spacing: -0.04em;
+    }
+
+    .page-heading .intro {
+      max-width: 560px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .primary-btn,
+    .ghost-btn,
+    .danger-btn,
+    .icon-btn {
+      min-height: 44px;
+      border-radius: 12px;
+      padding: 0 16px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    .primary-btn:hover,
+    .ghost-btn:hover,
+    .danger-btn:hover,
+    .icon-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-btn {
+      border: 0;
+      background: var(--green);
+      color: white;
+      box-shadow: 0 6px 16px rgba(0, 113, 227, 0.20);
+    }
+
+    .primary-btn:hover {
+      background: var(--green-dark);
+    }
+
+    .ghost-btn,
+    .icon-btn {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+    }
+
     .danger-btn {
-      height: 32px;
-      border-radius: 7px;
-      background: #fff;
-      color: var(--red);
-      border: 1px solid #efc4c4;
-      padding: 0 10px;
-      font-weight: 750;
+      border: 0;
+      background: #fff0ef;
+      color: var(--danger);
     }
 
-    .danger-btn:hover {
-      background: #fbe2e2;
-    }
-
-    .content {
-      padding: 22px 28px 28px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 18px;
-      min-height: 0;
-    }
-
-    .content.map-mode {
-      grid-template-columns: 1fr;
-    }
-
-    .content.map-mode .detail {
-      display: none;
-    }
-
-    .register {
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
-      gap: 14px;
+    .icon-btn {
+      width: 44px;
+      padding: 0;
+      font-size: 22px;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(4, minmax(130px, 1fr));
-      gap: 12px;
-    }
-
-    #catchView .stats {
-      max-width: calc(100vw - 28px - 28px - 360px - 18px);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
     }
 
     .stat {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px 14px 12px;
-      min-height: 86px;
-    }
-
-    .stat.clickable {
-      cursor: pointer;
-    }
-
-    .stat.clickable:hover,
-    .stat.clickable.active {
-      border-color: var(--sea);
-      box-shadow: 0 0 0 3px rgba(15, 107, 122, .12);
-    }
-
-    .stat.clickable:focus-visible {
-      outline: 3px solid rgba(15, 107, 122, .3);
-      outline-offset: 2px;
+      min-height: 112px;
+      padding: 20px;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
     }
 
     .stat span {
       display: block;
       color: var(--muted);
       font-size: 13px;
+      font-weight: 600;
     }
 
     .stat strong {
       display: block;
-      margin-top: 7px;
-      font-size: 26px;
+      margin-top: 8px;
+      font-size: 36px;
+      font-weight: 720;
       line-height: 1;
     }
 
-    .leaderboard {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .leaderboard-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: baseline;
-    }
-
-    .leaderboard h2 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: 0;
-    }
-
-    .leaderboard span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
     .filters {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) 160px 160px;
-      gap: 10px;
-      align-items: end;
+      grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 14px;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
     }
 
     .field {
       display: grid;
-      gap: 6px;
+      gap: 7px;
     }
 
-    label {
+    .field label {
       color: var(--muted);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 650;
     }
 
-    input, select, textarea {
+    .field input,
+    .field select,
+    .field textarea {
       width: 100%;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 7px;
+      min-height: 46px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 11px;
+      padding: 10px 12px;
+      background: #fbfbfd;
       color: var(--ink);
-      min-height: 38px;
-      padding: 8px 10px;
-      outline: none;
     }
 
-    textarea {
-      min-height: 86px;
+    .field textarea {
+      min-height: 108px;
       resize: vertical;
+      line-height: 1.5;
     }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--focus);
-      box-shadow: 0 0 0 3px rgba(42, 123, 223, .14);
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--blue);
     }
 
-    .table-wrap {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: auto;
-      min-height: 420px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 780px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: middle;
-      font-size: 14px;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: #f8fafb;
-      color: #50616b;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0;
-    }
-
-    tr {
-      background: #fff;
-    }
-
-    tbody tr:hover,
-    tbody tr.selected {
-      background: #eef8f8;
-    }
-
-    .gear-cell {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 190px;
-    }
-
-    .gear-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 7px;
-      background: #d9eceb;
+    .workspace {
       display: grid;
-      place-items: center;
-      color: #0f5361;
-      flex: 0 0 auto;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+      gap: 20px;
+      align-items: start;
     }
 
-    .gear-cell strong {
-      display: block;
-      font-size: 14px;
+    .panel {
+      overflow: hidden;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
     }
 
-    .gear-cell span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 2px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 25px;
-      border-radius: 999px;
-      padding: 0 9px;
-      font-size: 12px;
-      font-weight: 750;
-      white-space: nowrap;
-    }
-
-    .badge.active { background: #dff1e9; color: #176247; }
-    .badge.warning { background: #fff0db; color: #8b4a08; }
-    .badge.error { background: #fbe2e2; color: #903333; }
-
-    .colors {
+    .panel-header {
       display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
       align-items: center;
-      min-width: 150px;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
     }
 
-    .color-chip {
-      display: inline-flex;
-      min-height: 25px;
+    .panel-header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .catch-list {
+      display: grid;
+    }
+
+    .catch-row {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr) 105px;
+      gap: 18px;
       align-items: center;
-      border-radius: 999px;
-      padding: 0 9px;
-      background: #eef3f5;
-      border: 1px solid var(--line);
-      color: #2d3d46;
-      font-size: 12px;
-      font-weight: 700;
+      width: 100%;
+      min-height: 92px;
+      border: 0;
+      border-bottom: 1px solid #e6e9e3;
+      padding: 16px 20px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .catch-row:last-child {
+      border-bottom: 0;
+    }
+
+    .catch-row:hover {
+      background: #f5f8f3;
+    }
+
+    .catch-row.selected {
+      background: var(--green-soft);
+      box-shadow: inset 4px 0 var(--green);
+    }
+
+    .catch-date {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .catch-place {
+      min-width: 0;
+    }
+
+    .catch-place strong {
+      display: block;
+      overflow: hidden;
+      font-size: 15px;
+      text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .catch-place span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .catch-weight {
+      justify-self: end;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #eaf4ff;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      padding: 54px 22px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--ink);
+      font-size: 17px;
     }
 
     .detail {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      max-height: calc(100vh - 128px);
       position: sticky;
-      top: 22px;
-      overflow: hidden;
+      top: 100px;
     }
 
-    .detail-header {
-      padding: 18px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .detail-title {
-      min-width: 0;
-    }
-
-    .detail-title h2 {
-      margin: 0;
-      font-size: 19px;
-      letter-spacing: 0;
-      line-height: 1.25;
-    }
-
-    .detail-title p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .detail-body {
-      padding: 18px;
-      overflow: auto;
-      display: grid;
-      gap: 18px;
-      align-content: start;
-    }
-
-    .map {
-      height: 170px;
-      border-radius: 8px;
+    .detail-hero {
+      min-height: 138px;
+      padding: 22px;
+      color: white;
       background:
-        linear-gradient(90deg, rgba(255,255,255,.45) 1px, transparent 1px),
-        linear-gradient(rgba(255,255,255,.45) 1px, transparent 1px),
-        linear-gradient(135deg, #b8d7d8, #6da7ad 58%, #497d86);
-      background-size: 28px 28px, 28px 28px, auto;
-      border: 1px solid #9dbdc1;
-      position: relative;
-      overflow: hidden;
+        linear-gradient(135deg, rgba(0, 102, 204, 0.96), rgba(88, 86, 214, 0.76)),
+        url("vergetjern-kart.png") center / cover;
     }
 
-    .map::before {
-      content: "";
-      position: absolute;
-      left: 24px;
-      right: 22px;
-      top: 70px;
-      height: 36px;
-      border: 2px dashed rgba(8, 53, 65, .44);
-      border-left: 0;
-      border-radius: 0 24px 24px 0;
-      transform: rotate(-11deg);
+    .detail-hero h3 {
+      margin: 18px 0 5px;
+      font-size: 27px;
+      font-weight: 720;
+      letter-spacing: -0.025em;
     }
 
-    .pin {
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      border-radius: 50% 50% 50% 0;
-      background: #f6f8f7;
-      border: 5px solid var(--red);
-      transform: rotate(-45deg);
-      left: 54%;
-      top: 43%;
-      box-shadow: var(--shadow);
+    .detail-hero p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
     }
 
-    .map.catch-detail-map {
-      height: auto;
-      min-height: 280px;
-      aspect-ratio: 559 / 717;
-      background: #f0ede4 url("vergetjern-kart.png") center / 100% 100% no-repeat;
-      margin-bottom: 12px;
-    }
-
-    .map.catch-detail-map::before,
-    .map.catch-detail-map::after {
-      display: none;
-    }
-
-    .map.catch-detail-map .pin {
-      width: 7px;
-      height: 7px;
-      min-width: 7px;
-      min-height: 7px;
-      border: 0;
-      border-radius: 50%;
-      background: var(--red);
-      transform: translate(-50%, -50%);
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-
-    .position-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: end;
-    }
-
-    .position-status {
-      min-height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: #f8fafb;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
+    .weight-badge {
+      display: inline-flex;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
       font-weight: 700;
     }
 
+    .detail-map,
     .picker-map {
-      height: auto;
-      aspect-ratio: 559 / 717;
-      max-height: 70vh;
-      border-radius: 8px;
-      border: 1px solid #9dbdc1;
-      background: #f0ede4 url("vergetjern-kart.png") center / 100% 100% no-repeat;
       position: relative;
       overflow: hidden;
-      cursor: crosshair;
-      touch-action: manipulation;
+      background: #dce8df url("vergetjern-kart.png") center / cover no-repeat;
     }
 
-    .picker-pin {
+    .detail-map {
+      height: 190px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .detail-map.no-position::after {
+      content: "Ingen kartposisjon";
       position: absolute;
-      width: 22px;
-      height: 22px;
-      border-radius: 50% 50% 50% 0;
-      background: #fff;
-      border: 5px solid var(--red);
-      transform: translate(-50%, -100%) rotate(-45deg);
-      left: 50%;
-      top: 50%;
-      box-shadow: var(--shadow);
-      pointer-events: none;
-    }
-
-    .picker-readout {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .catch-map {
-      aspect-ratio: 559 / 717;
-      max-height: 70vh;
-      min-height: 420px;
-      border-radius: 8px;
-      border: 1px solid #9dbdc1;
-      background: #f0ede4 url("vergetjern-kart.png") center / 100% 100% no-repeat;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .catch-dot {
-      position: absolute;
-      width: 7px;
-      height: 7px;
-      min-width: 7px;
-      min-height: 7px;
-      padding: 0;
-      border-radius: 50%;
-      background: var(--red);
-      border: 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-      transform: translate(-50%, -50%);
-      appearance: none;
-      line-height: 0;
-    }
-
-    .catch-dot:hover::after {
-      content: attr(title);
-      position: absolute;
-      left: 18px;
-      top: -8px;
-      z-index: 2;
-      min-width: 160px;
-      max-width: 240px;
-      padding: 8px 10px;
-      border-radius: 7px;
-      background: #12323d;
-      color: #fff;
-      font-size: 12px;
-      line-height: 1.3;
-      box-shadow: var(--shadow);
-      white-space: normal;
-    }
-
-    .map-legend {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(245, 241, 232, 0.78);
       color: var(--muted);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 750;
     }
 
-    .map-legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .kv {
+    .detail-data {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
     }
 
-    .kv div {
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 10px;
-      min-width: 0;
+    .detail-data div {
+      min-height: 78px;
+      padding: 16px 18px;
+      background: var(--surface);
     }
 
-    .kv span {
+    .detail-data span {
       display: block;
+      margin-bottom: 6px;
       color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
-    .kv strong {
-      display: block;
-      margin-top: 4px;
+    .detail-data strong {
       font-size: 14px;
-      line-height: 1.3;
       overflow-wrap: anywhere;
     }
 
-    .section-title {
-      margin: 0 0 8px;
-      font-size: 13px;
-      color: #42545e;
-      text-transform: uppercase;
-      letter-spacing: 0;
+    .detail-note {
+      padding: 20px;
+      border-top: 1px solid var(--line);
     }
 
-    .timeline {
-      display: grid;
-      gap: 10px;
-    }
-
-    .event {
-      display: grid;
-      grid-template-columns: 16px 1fr;
-      gap: 10px;
-      align-items: start;
+    .detail-note span {
+      display: block;
+      margin-bottom: 8px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
-    .dot {
-      width: 10px;
-      height: 10px;
-      margin-top: 4px;
-      border-radius: 50%;
-      background: var(--sea);
+    .detail-note p {
+      margin: 0;
+      line-height: 1.55;
+      white-space: pre-wrap;
     }
 
     .detail-actions {
-      padding: 14px 18px;
-      border-top: 1px solid var(--line);
       display: flex;
-      gap: 10px;
       justify-content: flex-end;
+      gap: 9px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .map-page .page-heading {
+      align-items: center;
+    }
+
+    .map-filters {
+      display: flex;
+      align-items: end;
+      gap: 22px;
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .map-year-field {
+      width: 170px;
+      flex: 0 0 auto;
+    }
+
+    .user-filter {
+      min-width: 0;
+      margin: 0;
+      border: 0;
+      padding: 0;
+    }
+
+    .user-filter legend {
+      margin-bottom: 8px;
+      padding: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .user-checkboxes {
+      display: flex;
       flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 13px;
+      background: #fbfbfd;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .check-pill input {
+      width: 17px;
+      height: 17px;
+      margin: 0;
+      accent-color: var(--blue);
+    }
+
+    .check-color {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .map-shell {
+      overflow: hidden;
+      border: 0;
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .catch-map {
+      display: grid;
+      min-height: 0;
+      place-items: center;
+      padding: 20px;
+      background: #e9edf2;
+    }
+
+    .catch-map-canvas {
+      position: relative;
+      width: min(100%, 500px);
+      height: auto;
+      overflow: hidden;
+      aspect-ratio: 559 / 717;
+      border-radius: 16px;
+      background: #dce8df url("vergetjern-kart.png") center / 100% 100% no-repeat;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+    }
+
+    .map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      min-height: 62px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    #mapResultCount {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .map-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      font-size: 13px;
+    }
+
+    .map-summary strong {
+      display: block;
+    }
+
+    .map-summary span {
+      color: var(--muted);
+    }
+
+    .map-pin,
+    .catch-dot,
+    .picker-pin {
+      position: absolute;
+      z-index: 2;
+      width: 22px;
+      height: 22px;
+      border: 3px solid white;
+      border-radius: 50% 50% 50% 0;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.36);
+      transform: translate(-50%, -90%) rotate(-45deg);
+    }
+
+    .map-pin,
+    .picker-pin {
+      background: var(--danger);
+    }
+
+    .catch-dot {
+      width: 10px;
+      height: 10px;
+      border: 2px solid white;
+      border-radius: 50%;
+      padding: 0;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.34);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+
+    .catch-dot:hover,
+    .catch-dot.selected {
+      z-index: 4;
+      width: 15px;
+      height: 15px;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.20), 0 2px 7px rgba(0, 0, 0, 0.32);
     }
 
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(9, 25, 32, .45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 20;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 24px;
+      background: rgba(16, 28, 22, 0.62);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
     }
-
-    .modal[hidden] { display: none !important; }
-    .modal.open { display: flex; }
 
     .dialog {
-      width: min(780px, 100%);
-      max-height: min(760px, 92vh);
+      width: min(720px, 100%);
+      max-height: calc(100vh - 48px);
       overflow: auto;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 24px 70px rgba(0,0,0,.25);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 24px;
+      background: #f5f5f7;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
     }
 
-    .dialog header {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
+    .dialog > header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
       display: flex;
-      justify-content: space-between;
-      gap: 12px;
       align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 19px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 245, 247, 0.92);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
     }
 
     .dialog h2 {
       margin: 0;
-      font-size: 20px;
-      letter-spacing: 0;
+      font-size: 25px;
+      font-weight: 720;
+      letter-spacing: -0.025em;
     }
 
     .form-grid {
-      padding: 18px 20px 20px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      gap: 16px;
+      padding: 22px;
     }
 
-    .form-grid .wide {
+    .field.wide {
       grid-column: 1 / -1;
     }
 
+    .position-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .position-status {
+      display: flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px dashed rgba(0, 0, 0, 0.20);
+      border-radius: 11px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .position-status.error {
+      border-color: rgba(255, 59, 48, 0.55);
+      background: #fff0ef;
+      color: #c3261c;
+    }
+
     .dialog footer {
-      padding: 14px 20px 20px;
       display: flex;
       justify-content: flex-end;
       gap: 10px;
+      padding: 16px 22px 22px;
     }
 
-    .empty {
-      padding: 34px;
+    .picker-map {
+      width: min(100%, 430px);
+      height: auto;
+      margin: 0 auto;
+      aspect-ratio: 559 / 717;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background-size: 100% 100%;
+      cursor: crosshair;
+    }
+
+    .picker-help {
+      margin: 10px 0 0;
       color: var(--muted);
-      text-align: center;
-      display: none;
+      font-size: 13px;
     }
-
-    .empty.visible { display: block; }
-
-    .view { display: none; }
-    .view.active { display: grid; }
 
     @media (max-width: 900px) {
-      .content { grid-template-columns: 1fr; }
-      .detail { position: static; max-height: none; }
-      #catchView .stats { max-width: none; }
-    }
-
-    @media (max-width: 760px) {
       .topbar {
-        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        padding: 12px 18px;
+        padding-top: calc(12px + env(safe-area-inset-top));
+        padding-right: calc(18px + env(safe-area-inset-right));
+        padding-left: calc(18px + env(safe-area-inset-left));
+      }
+
+      .topbar .brand {
+        order: 1;
+      }
+
+      .topbar-actions {
+        order: 2;
+      }
+
+      .main-nav {
+        order: 3;
+        width: 100%;
+      }
+
+      .nav-btn {
+        flex: 1;
+      }
+
+      .page {
+        padding: 24px 18px 40px;
+        padding-right: calc(18px + env(safe-area-inset-right));
+        padding-bottom: calc(40px + env(safe-area-inset-bottom));
+        padding-left: calc(18px + env(safe-area-inset-left));
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .detail {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar .brand h1 {
+        display: none;
+      }
+
+      .session {
+        max-width: 88px;
+      }
+
+      .page-heading {
+        align-items: stretch;
         flex-direction: column;
-        padding: 16px;
       }
-      .toolbar { justify-content: flex-start; width: 100%; }
-      .storage-status { text-align: left; }
-      .content { padding: 14px; }
-      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .filters .field:first-child { grid-column: 1 / -1; }
-      .form-grid { grid-template-columns: 1fr; }
-      .kv { grid-template-columns: 1fr; }
-    }
 
-    @media (max-width: 480px) {
-      .app-logo h1 { font-size: 21px; }
-      .topbar { gap: 12px; }
-      .toolbar {
-        gap: 8px;
-      }
-      .segmented {
-        display: flex;
+      .page-heading .primary-btn {
         width: 100%;
       }
-      .segmented button {
-        flex: 1 1 0;
-        min-width: 0;
+
+      .stats {
+        grid-template-columns: 1fr;
       }
+
       .stat {
-        min-height: 76px;
-        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 72px;
       }
-      .stat strong { font-size: 23px; }
-      .table-wrap { overflow-x: auto; }
-      .dialog { width: min(96vw, 640px); }
-      .map-panel,
-      .map-detail {
-        min-height: 300px;
+
+      .stat strong {
+        margin: 0;
+        font-size: 30px;
+      }
+
+      .filters,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        font-size: 16px;
+      }
+
+      .field.wide {
+        grid-column: auto;
+      }
+
+      .catch-row {
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 12px;
+        padding: 15px;
+      }
+
+      .catch-weight {
+        grid-column: 2;
+        justify-self: start;
+      }
+
+      .position-row {
+        grid-template-columns: 1fr auto;
+      }
+
+      .position-status {
+        grid-column: 1 / -1;
+      }
+
+      .modal {
+        align-items: end;
+        padding: 0;
+      }
+
+      .dialog {
+        max-height: 94vh;
+        border-radius: 22px 22px 0 0;
+      }
+
+      .dialog footer {
+        flex-wrap: wrap;
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
+      }
+
+      .dialog footer button {
+        flex: 1;
+      }
+
+      .map-summary {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .map-filters {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .map-year-field {
+        width: 100%;
+      }
+
+      .catch-map {
+        min-height: 0;
+        padding: 0;
+      }
+
+      .catch-map-canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 0;
+        box-shadow: none;
       }
     }
 
-    @media (max-width: 380px) {
-      .filters { grid-template-columns: 1fr; }
-      .filters .field:first-child { grid-column: auto; }
-      .user-session {
-        width: 100%;
-        justify-content: space-between;
+    @supports not (aspect-ratio: 1 / 1) {
+      .catch-map-canvas,
+      .picker-map {
+        width: min(100%, 559px);
+        height: auto;
       }
-      .primary-btn,
-      .ghost-btn {
-        padding: 0 10px;
+
+      .catch-map-canvas::before,
+      .picker-map::before {
+        display: block;
+        padding-top: 128.2648%;
+        content: "";
       }
     }
   </style>
 </head>
-<body class="login-active">
-  <section class="login-screen" id="loginScreen" aria-label="Innlogging">
-      <div class="login-panel">
-        <div class="app-logo" aria-label="RegiVersj">
-        <img class="logo-mark" src="icon.svg" alt="" aria-hidden="true">
+<body>
+  <section class="login-screen" id="loginScreen" aria-label="Velg bruker">
+    <div class="login-panel">
+      <div class="brand">
+        <img src="icon.svg" alt="">
         <h1>RegiVersj</h1>
       </div>
-      <form class="login-form" id="loginForm">
+      <p>Registrer fangstene dine og se nøyaktig hvor de ble tatt.</p>
+      <form id="loginForm">
         <div class="field">
-          <label for="loginUser">Bruker</label>
+          <label for="loginUser">Hvem er du?</label>
           <select id="loginUser" required>
             <option value="Bjarne">Bjarne</option>
             <option value="Knut Arne">Knut Arne</option>
             <option value="Frode">Frode</option>
           </select>
         </div>
-        <button class="primary-btn" type="submit">Logg inn</button>
+        <button class="primary-btn" type="submit" style="width:100%; margin-top:16px;">Åpne fangstloggen</button>
       </form>
     </div>
   </section>
 
-  <div class="app">
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <button class="brand" type="button" id="brandBtn" aria-label="Gå til innlogging">
+        <img src="icon.svg" alt="">
+        <h1>RegiVersj</h1>
+      </button>
+
+      <nav class="main-nav" aria-label="Hovedmeny">
+        <button class="nav-btn active" type="button" data-view="catches">Fangster</button>
+        <button class="nav-btn" type="button" data-view="map">Kart</button>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="session">
+          <strong id="currentUserLabel"></strong>
+          <button class="text-button" type="button" id="switchUserBtn">Bytt bruker</button>
+        </div>
+        <span class="storage-status" id="storageStatus"></span>
+        <button class="primary-btn" type="button" id="newCatchBtn">+ Ny fangst</button>
+      </div>
+    </header>
+
     <main>
-      <header class="topbar">
-        <button class="app-logo" type="button" id="homeLogoBtn" aria-label="Gå til innlogging">
-          <img class="logo-mark" src="icon.svg" alt="" aria-hidden="true">
-          <h1>RegiVersj</h1>
-        </button>
-        <div class="toolbar">
-          <div class="segmented" aria-label="Velg register">
-            <button class="active" type="button" id="wobblerTab">Wobblere</button>
-            <button type="button" id="catchTab">Fangster</button>
+      <section class="page" id="catchPage">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Din fangstlogg</p>
+            <h2>Fangster</h2>
+            <p class="intro">Samle vekt, vær, notater og kartposisjon på ett sted.</p>
           </div>
-          <button class="icon-btn" type="button" title="Oppdater" id="refreshBtn">↻</button>
-          <button class="primary-btn" type="button" id="openModalBtn">+ Ny wobbler</button>
-          <div class="user-session">
-            <span id="currentUserLabel"></span>
-            <button class="ghost-btn" type="button" id="switchUserBtn">Bytt bruker</button>
-          </div>
-          <div class="storage-status" id="storageStatus">Lagring sjekkes</div>
-        </div>
-      </header>
-
-      <section class="content">
-        <div class="register view active" id="wobblerView">
-          <section class="stats" aria-label="Nøkkeltall">
-            <div class="stat clickable active" data-overview="active" tabindex="0"><span>Aktive wobblere</span><strong id="statTotal">0</strong></div>
-            <div class="stat clickable" data-overview="withCatch" tabindex="0"><span>Wobblere med fangst</span><strong id="statWithCatch">0</strong></div>
-            <div class="stat clickable" data-overview="lost" tabindex="0"><span>Mistede wobblere</span><strong id="statLost">0</strong></div>
-            <div class="stat clickable" data-overview="noCatch" tabindex="0"><span>Wobblere uten fangst</span><strong id="statNoCatch">0</strong></div>
-          </section>
-
-          <section class="filters" aria-label="Filtre">
-            <div class="field">
-              <label for="search">Søk</label>
-              <input id="search" type="search" placeholder="ID, navn, farge eller modell">
-            </div>
-            <div class="field">
-              <label for="typeFilter">Modell</label>
-              <select id="typeFilter">
-                <option value="">Alle modeller</option>
-                <option value="Flytende">Flytende</option>
-                <option value="Synkende">Synkende</option>
-                <option value="Suspending">Suspending</option>
-                <option value="Dypgående">Dypgående</option>
-              </select>
-            </div>
-          </section>
-
-          <section class="table-wrap" aria-label="Wobblerliste">
-            <table>
-              <thead>
-                <tr>
-                  <th>Wobbler</th>
-                  <th>Farger</th>
-                  <th>Mønster</th>
-                  <th>Lengde</th>
-                  <th>Fangster</th>
-                  <th>Mistet</th>
-                </tr>
-              </thead>
-              <tbody id="gearRows"></tbody>
-            </table>
-            <div class="empty" id="emptyState">Ingen treff med valgte filtre.</div>
-          </section>
+          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
 
-        <div class="register view" id="catchView">
-          <section class="stats" aria-label="Fangstvalg">
-            <div class="stat clickable active" data-catch-overview="week" tabindex="0"><span>Fangster sist uke</span><strong id="catchStatWeek">0</strong></div>
-            <div class="stat clickable" data-catch-overview="all" tabindex="0"><span>Fangster</span><strong id="catchStatTotal">0</strong></div>
-            <div class="stat clickable" data-catch-overview="map" tabindex="0"><span>Fangstkart</span><strong id="catchStatMap">0</strong></div>
+        <section class="stats" aria-label="Fangststatistikk">
+          <article class="stat"><span>Mine fangster</span><strong id="statTotal">0</strong></article>
+          <article class="stat"><span>Siste 7 dager</span><strong id="statWeek">0</strong></article>
+          <article class="stat"><span>Med kartposisjon</span><strong id="statMapped">0</strong></article>
+        </section>
+
+        <section class="filters" aria-label="Filtrer fangster">
+          <div class="field">
+            <label for="searchInput">Søk</label>
+            <input id="searchInput" type="search" placeholder="Dato, vær eller notat">
+          </div>
+          <div class="field">
+            <label for="timeFilter">Tid på døgnet</label>
+            <select id="timeFilter">
+              <option value="">Alle tider</option>
+              <option>Morgen</option>
+              <option>Formiddag</option>
+              <option>Ettermiddag</option>
+              <option>Kveld</option>
+              <option>Natt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="weatherFilter">Vær</label>
+            <select id="weatherFilter">
+              <option value="">Alt vær</option>
+              <option>Klarvær</option>
+              <option>Lettskyet</option>
+              <option>Overskyet</option>
+              <option>Tåke</option>
+              <option>Yr</option>
+              <option>Regn</option>
+              <option>Sludd</option>
+              <option>Snø</option>
+              <option>Torden</option>
+            </select>
+          </div>
+        </section>
+
+        <div class="workspace">
+          <section class="panel" aria-label="Fangstliste">
+            <header class="panel-header">
+              <h3>Registrerte fangster</h3>
+              <span id="resultCount">0 fangster</span>
+            </header>
+            <div class="catch-list" id="catchList"></div>
+            <div class="empty-state" id="emptyState" hidden>
+              <strong>Ingen fangster ennå</strong>
+              Registrer den første fangsten med knappen øverst.
+            </div>
           </section>
 
-          <section class="filters" aria-label="Fangstfiltre">
-            <div class="field">
-              <label for="catchSearch">Søk</label>
-              <input id="catchSearch" type="search" placeholder="Wobbler, sted, dato eller notat">
+          <aside class="panel detail" id="detailPanel" aria-label="Fangstdetaljer">
+            <div class="empty-state">
+              <strong>Velg en fangst</strong>
+              Detaljene vises her.
             </div>
-            <div class="field">
-              <label for="catchTimeFilter">Tid</label>
-              <select id="catchTimeFilter">
-                <option value="">Alle tider</option>
-                <option value="Morgen">Morgen</option>
-                <option value="Formiddag">Formiddag</option>
-                <option value="Ettermiddag">Ettermiddag</option>
-                <option value="Kveld">Kveld</option>
-                <option value="Natt">Natt</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="catchWobblerFilter">Wobbler</label>
-              <select id="catchWobblerFilter">
-                <option value="">Alle wobblere</option>
-              </select>
-            </div>
-          </section>
+          </aside>
+        </div>
+      </section>
 
-          <section class="table-wrap" id="catchTableSection" aria-label="Fangstliste">
-            <table>
-              <thead>
-                <tr>
-                  <th>Når</th>
-                  <th>Hvor</th>
-                  <th>Wobbler</th>
-                  <th>Tid på døgnet</th>
-                  <th>Vekt (gram)</th>
-                </tr>
-              </thead>
-              <tbody id="catchRows"></tbody>
-            </table>
-            <div class="empty" id="catchEmptyState">Ingen fangster med valgte filtre.</div>
-          </section>
-
-          <section class="table-wrap" id="catchMapSection" aria-label="Fangstkart" hidden>
-            <div class="catch-map" id="catchMap"></div>
-            <div class="map-legend">
-              <span><i class="legend-dot" style="background:#2a7bdf"></i>Bjarne</span>
-              <span><i class="legend-dot" style="background:#111820"></i>Knut Arne</span>
-              <span><i class="legend-dot" style="background:#f0c419"></i>Frode</span>
-            </div>
-            <div class="empty" id="catchMapEmptyState">Ingen fangster med kartposisjon.</div>
-          </section>
+      <section class="page map-page" id="mapPage" hidden>
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Alle registrerte posisjoner</p>
+            <h2>Fangstkart</h2>
+            <p class="intro">Punktene viser fangstene som er lagret på denne enheten.</p>
+          </div>
+          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
 
-        <aside class="detail" aria-label="Detaljer">
-          <div class="detail-header">
-            <div class="detail-title">
-              <h2 id="detailName">Velg en wobbler</h2>
-              <p id="detailSub">Detaljer vises her</p>
+        <section class="map-filters" aria-label="Filtrer fangstkartet">
+          <div class="field map-year-field">
+            <label for="mapYearFilter">År</label>
+            <select id="mapYearFilter">
+              <option value="">Alle år</option>
+            </select>
+          </div>
+          <fieldset class="user-filter">
+            <legend>Fiskere</legend>
+            <div class="user-checkboxes">
+              <label class="check-pill">
+                <input type="checkbox" value="Bjarne" data-map-user checked>
+                <i class="check-color" style="background:#2a7bdf"></i>
+                Bjarne
+              </label>
+              <label class="check-pill">
+                <input type="checkbox" value="Knut Arne" data-map-user checked>
+                <i class="check-color" style="background:#1d1d1f"></i>
+                Knut Arne
+              </label>
+              <label class="check-pill">
+                <input type="checkbox" value="Frode" data-map-user checked>
+                <i class="check-color" style="background:#ffcc00"></i>
+                Frode
+              </label>
             </div>
-            <span class="badge active" id="detailStatus" hidden></span>
-          </div>
+          </fieldset>
+        </section>
 
-          <div class="detail-body">
-            <div class="map" id="detailMap" aria-label="Kartutsnitt"><span class="pin" id="detailPin"></span></div>
-            <section>
-              <h3 class="section-title" id="detailSectionTitle">Wobblerdata</h3>
-              <div class="kv">
-                <div><span id="detailIdLabel">ID</span><strong id="detailId">-</strong></div>
-                <div><span id="detailTypeLabel">Modell</span><strong id="detailType">-</strong></div>
-                <div><span id="detailOwnerLabel">Navn</span><strong id="detailOwner">-</strong></div>
-                <div><span id="detailVesselLabel">Lengde</span><strong id="detailVessel">-</strong></div>
-                <div><span id="detailColorsLabel">Farger</span><strong id="detailColors">-</strong></div>
-                <div><span id="detailPatternLabel">Mønster</span><strong id="detailPattern">-</strong></div>
-                <div><span id="detailCatchCountLabel">Fangster</span><strong id="detailCatchCount">-</strong></div>
-                <div><span id="detailMarkingLabel">Notat</span><strong id="detailMarking">-</strong></div>
-              </div>
-            </section>
-
-            <section>
-              <h3 class="section-title">Hendelser</h3>
-              <div class="timeline" id="timeline"></div>
-            </section>
+        <div class="map-shell">
+          <div class="catch-map" id="catchMap" aria-label="Kart med fangstposisjoner"></div>
+          <div class="map-toolbar">
+            <span id="mapResultCount">0 fangster på kartet</span>
+            <div class="map-summary" id="mapSummary">
+              <span>Ingen fangst valgt</span>
+            </div>
           </div>
-
-          <div class="detail-actions" id="detailActions">
-            <button class="ghost-btn" type="button" id="markLostBtn">Mistet</button>
-            <button class="primary-btn" type="button" id="editBtn">Rediger</button>
-          </div>
-        </aside>
+        </div>
       </section>
     </main>
-  </div>
-
-  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-    <div class="dialog">
-      <header>
-        <h2 id="modalTitle">Ny wobbler</h2>
-        <button class="close-btn" type="button" id="closeModalBtn" aria-label="Lukk redigering" title="Lukk">×</button>
-      </header>
-      <form id="gearForm">
-        <div class="form-grid">
-          <div class="field">
-            <label for="formType">Modell</label>
-            <select id="formType" required>
-              <option value="Flytende">Flytende</option>
-              <option value="Synkende">Synkende</option>
-              <option value="Suspending">Suspending</option>
-              <option value="Dypgående">Dypgående</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="formOwner">Navn</label>
-            <input id="formOwner" required value="Rapala Shadow Rap">
-          </div>
-          <div class="field">
-            <label for="formVessel">Lengde</label>
-            <select id="formVessel" required>
-              <option value="3 cm">3 cm</option>
-              <option value="5 cm">5 cm</option>
-              <option value="7 cm">7 cm</option>
-              <option value="div cm">div cm</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="formColor1">Farge 1</label>
-            <select id="formColor1" required></select>
-          </div>
-          <div class="field">
-            <label for="formColor2">Farge 2</label>
-            <select id="formColor2" required></select>
-          </div>
-          <div class="field">
-            <label for="formColor3">Farge 3</label>
-            <select id="formColor3" required></select>
-          </div>
-          <div class="field">
-            <label for="formPattern">Mønster</label>
-            <select id="formPattern" required></select>
-          </div>
-          <div class="field">
-            <label for="formMarking">Notat</label>
-            <input id="formMarking" required value="Går best ved rolig innsveiving.">
-          </div>
-        </div>
-        <footer>
-          <button class="danger-btn" type="button" id="deleteWobblerInModalBtn">Slett wobbler</button>
-          <button class="ghost-btn" type="button" id="cancelModalBtn">Avbryt</button>
-          <button class="primary-btn" type="submit" id="saveWobblerBtn">Lagre registrering</button>
-        </footer>
-      </form>
-    </div>
   </div>
 
   <div class="modal" id="catchModal" role="dialog" aria-modal="true" aria-labelledby="catchModalTitle" hidden>
     <div class="dialog">
       <header>
         <h2 id="catchModalTitle">Ny fangst</h2>
-        <button class="icon-btn" type="button" id="closeCatchModalBtn" title="Lukk">×</button>
+        <button class="icon-btn" type="button" id="closeCatchModalBtn" aria-label="Lukk">×</button>
       </header>
       <form id="catchForm">
         <div class="form-grid">
           <div class="field">
             <label for="catchDate">Dato</label>
-            <input id="catchDate" type="date" required value="2026-06-07">
+            <input id="catchDate" type="date" required>
           </div>
           <div class="field">
             <label for="catchTime">Tid på døgnet</label>
             <select id="catchTime" required>
-              <option value="Morgen">Morgen</option>
-              <option value="Formiddag">Formiddag</option>
-              <option value="Ettermiddag">Ettermiddag</option>
-              <option value="Kveld">Kveld</option>
-              <option value="Natt">Natt</option>
+              <option>Morgen</option>
+              <option>Formiddag</option>
+              <option>Ettermiddag</option>
+              <option>Kveld</option>
+              <option>Natt</option>
             </select>
           </div>
-          <div class="field">
-            <label for="catchPlace">Hvor</label>
-            <input id="catchPlace" required value="Grunna ved Storvika">
-          </div>
-          <div class="field">
-            <label for="catchPositionStatus">Kartposisjon</label>
+          <div class="field wide">
+            <label>Kartposisjon</label>
             <div class="position-row">
-              <input id="catchPosition" type="hidden" value="">
-              <div class="position-status" id="catchPositionStatus">Ikke valgt</div>
-              <button class="ghost-btn" type="button" data-map-target="catchPosition">Velg i kart</button>
+              <input id="catchPosition" type="hidden">
+              <div class="position-status" id="catchPositionStatus" aria-live="polite">Ikke valgt</div>
+              <button class="ghost-btn" type="button" id="choosePositionBtn">Velg i kart</button>
+              <button class="icon-btn" type="button" id="clearPositionBtn" aria-label="Fjern kartposisjon" title="Fjern kartposisjon">×</button>
             </div>
           </div>
           <div class="field">
-            <label for="catchWobbler">Wobbler</label>
-            <select id="catchWobbler" required></select>
-          </div>
-          <div class="field">
             <label for="catchWeight">Vekt (gram)</label>
-            <input id="catchWeight" type="number" min="1" max="9999" step="1" required value="500">
+            <input id="catchWeight" type="number" min="1" max="9999" step="1" required inputmode="numeric">
           </div>
           <div class="field">
             <label for="catchWeather">Værtype</label>
             <select id="catchWeather" required>
-              <option value="Klarvær">Klarvær</option>
-              <option value="Lettskyet">Lettskyet</option>
-              <option value="Overskyet">Overskyet</option>
-              <option value="Tåke">Tåke</option>
-              <option value="Yr">Yr</option>
-              <option value="Regn">Regn</option>
-              <option value="Sludd">Sludd</option>
-              <option value="Snø">Snø</option>
-              <option value="Torden">Torden</option>
+              <option>Klarvær</option>
+              <option>Lettskyet</option>
+              <option>Overskyet</option>
+              <option>Tåke</option>
+              <option>Yr</option>
+              <option>Regn</option>
+              <option>Sludd</option>
+              <option>Snø</option>
+              <option>Torden</option>
             </select>
           </div>
           <div class="field">
-            <label for="catchTemperature">Temperatur (celsius)</label>
-            <input id="catchTemperature" type="number" min="0" max="25" step="1" required value="12">
+            <label for="catchTemperature">Temperatur (°C)</label>
+            <input id="catchTemperature" type="number" min="-30" max="40" step="1" required inputmode="numeric">
           </div>
           <div class="field wide">
             <label for="catchNote">Notat</label>
-            <textarea id="catchNote">Hugg ved rolig innsveiving med korte pauser.</textarea>
+            <textarea id="catchNote" maxlength="600" placeholder="Wobblertype / Promille / Whatevah"></textarea>
           </div>
         </div>
         <footer>
           <button class="ghost-btn" type="button" id="cancelCatchModalBtn">Avbryt</button>
-          <button class="primary-btn" type="submit">Lagre fangst</button>
+          <button class="primary-btn" type="submit" id="saveCatchBtn">Lagre fangst</button>
         </footer>
       </form>
     </div>
@@ -1265,15 +1318,15 @@
   <div class="modal" id="mapModal" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle" hidden>
     <div class="dialog">
       <header>
-        <h2 id="mapModalTitle">Velg posisjon i kart</h2>
-        <button class="icon-btn" type="button" id="closeMapModalBtn" title="Lukk">×</button>
+        <h2 id="mapModalTitle">Velg posisjon i kartet</h2>
+        <button class="icon-btn" type="button" id="closeMapModalBtn" aria-label="Lukk">×</button>
       </header>
       <div class="form-grid">
         <div class="field wide">
           <div class="picker-map" id="pickerMap" aria-label="Klikkbart kart">
             <span class="picker-pin" id="pickerPin"></span>
           </div>
-          <div class="picker-readout" id="pickerReadout">Posisjon valgt i kart</div>
+          <p class="picker-help" id="pickerReadout">Trykk på kartet for å plassere fangsten.</p>
         </div>
       </div>
       <footer>
@@ -1284,539 +1337,180 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "wobblerregister.v1";
+    const STORAGE_KEY = "regiversj.catches.v2";
+    const PREVIOUS_STORAGE_KEY = "wobblerregister.v1";
     const USER_KEY = "regiversj.currentUser";
-    const USER_OPTIONS = ["Bjarne", "Knut Arne", "Frode"];
-    const USER_DOT_COLORS = {
+    const USERS = ["Bjarne", "Knut Arne", "Frode"];
+    const USER_COLORS = {
       "Bjarne": "#2a7bdf",
-      "Knut Arne": "#111820",
-      "Frode": "#f0c419"
+      "Knut Arne": "#15211c",
+      "Frode": "#e7bd45"
     };
-    const COLOR_OPTIONS = ["Brun", "Grønn", "Gul", "Sølv", "Svart", "Blå", "Gull", "Kobber", "Hvit", "Oransje", "Rød", "Rosa", "Lilla", "Neongul", "Neongrønn", "Neonoransje"];
-    const COLOR_ALIASES = {
-      "Chartreuse": "Neongul",
-      "Olivengrønn": "Grønn",
-      "Perlemor": "Sølv"
-    };
-    const PATTERN_OPTIONS = ["Papegøye", "Tiger", "Fiskmønster", "Sølvglitter", "Gullglitter", "Kobber", "Flekkete", "Stripete", "Prikkete", "Fluorescerende", "Transparent", "Mørk silhuett", "Rødlig buk", "Lys buk", "Store øyne"];
     const WEATHER_OPTIONS = ["Klarvær", "Lettskyet", "Overskyet", "Tåke", "Yr", "Regn", "Sludd", "Snø", "Torden"];
     const MAP_BOUNDS = {
-      topLeftLat: 60.7940725,
-      topLeftLon: 8.5179911,
-      bottomRightLat: 60.779611,
-      bottomRightLon: 8.536837
+      topLeftLat: 60.838,
+      topLeftLon: 8.478,
+      bottomRightLat: 60.775,
+      bottomRightLon: 8.604
     };
-    const MAP_CENTER_POSITION = "60.786842 N, 8.527414 E";
+    const MAP_CENTER = "60.786842 N, 8.527414 E";
+
+    let catches = [];
+    let currentUser = "";
+    let activeView = "catches";
+    let selectedCatchId = "";
+    let editingCatchId = "";
+    let selectedMapPosition = MAP_CENTER;
     let storageWorks = false;
 
-    const defaultGear = [
-      {
-        id: "WB-2026-0148",
-        type: "Flytende",
-        owner: "Rapala Shadow Rap",
-        vessel: "7 cm",
-        seen: "I dag",
-        createdBy: "Bjarne",
-        lost: false,
-        marking: "Best ved sakte stopp-og-start.",
-        colors: ["Sølv", "Blå", "Oransje"],
-        pattern: "Papegøye",
-        events: ["Opprettet 07.06.2026", "Fargekombinasjon lagt inn 07.06.2026"]
-      },
-      {
-        id: "WB-2026-0119",
-        type: "Synkende",
-        owner: "Westin Jätte",
-        vessel: "div cm",
-        seen: "I går",
-        createdBy: "Bjarne",
-        lost: false,
-        marking: "Har fulgt etter, men få hugg.",
-        colors: ["Gull", "Svart", "Rød"],
-        pattern: "Tiger",
-        events: ["Bør testes mer i klart vann", "Fargekombinasjon lagt inn 04.06.2026"]
-      },
-      {
-        id: "WB-2026-0097",
-        type: "Suspending",
-        owner: "Berkley Dex",
-        vessel: "5 cm",
-        seen: "05.06.2026",
-        createdBy: "Knut Arne",
-        lost: false,
-        marking: "Kort pause etter hvert tredje sveiv ga hugg.",
-        colors: ["Sølv", "Grønn", "Svart"],
-        pattern: "Fiskmønster",
-        events: ["Vannstand middels", "Fargekombinasjon lagt inn 31.05.2026"]
-      },
-      {
-        id: "WB-2026-0061",
-        type: "Dypgående",
-        owner: "Strike Pro Buster",
-        vessel: "div cm",
-        seen: "02.06.2026",
-        createdBy: "Frode",
-        lost: true,
-        marking: "Skadet leppe, bør repareres.",
-        colors: ["Hvit", "Neongul", "Rosa"],
-        pattern: "Fluorescerende",
-        events: ["Tatt ut av bruk 02.06.2026", "Skade registrert 02.06.2026"]
-      },
-      {
-        id: "WB-2026-0042",
-        type: "Flytende",
-        owner: "Bomber Long A",
-        vessel: "3 cm",
-        seen: "31.05.2026",
-        createdBy: "Bjarne",
-        lost: false,
-        marking: "Lovende i bølger, ingen sikre landinger ennå.",
-        colors: ["Kobber", "Brun", "Gul"],
-        pattern: "Kobber",
-        events: ["Bør testes mer med lavere fart", "Fargekombinasjon lagt inn 30.05.2026"]
-      },
-      {
-        id: "WB-2026-0201",
-        type: "Dypgående",
-        owner: "Salmo Hornet",
-        vessel: "5 cm",
-        seen: "09.06.2026",
-        createdBy: "Bjarne",
-        lost: false,
-        marking: "God på dypkant i rolig fart.",
-        colors: ["Gul", "Svart", "Rød"],
-        pattern: "Tiger",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0202",
-        type: "Suspending",
-        owner: "Rapala X-Rap",
-        vessel: "7 cm",
-        seen: "08.06.2026",
-        createdBy: "Bjarne",
-        lost: false,
-        marking: "Stabil i små rykk.",
-        colors: ["Sølv", "Hvit", "Blå"],
-        pattern: "Fiskmønster",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0301",
-        type: "Flytende",
-        owner: "Rapala Original",
-        vessel: "5 cm",
-        seen: "09.06.2026",
-        createdBy: "Knut Arne",
-        lost: false,
-        marking: "Lett å holde høyt i vannet.",
-        colors: ["Gull", "Brun", "Kobber"],
-        pattern: "Gullglitter",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0302",
-        type: "Synkende",
-        owner: "Savage Gear Minnow",
-        vessel: "7 cm",
-        seen: "08.06.2026",
-        createdBy: "Knut Arne",
-        lost: false,
-        marking: "Fungerer fint ved jevn innsveiving.",
-        colors: ["Grønn", "Sølv", "Svart"],
-        pattern: "Stripete",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0303",
-        type: "Dypgående",
-        owner: "Strike Pro Archback",
-        vessel: "div cm",
-        seen: "07.06.2026",
-        createdBy: "Knut Arne",
-        lost: false,
-        marking: "Bør testes i mørkere vær.",
-        colors: ["Lilla", "Rosa", "Hvit"],
-        pattern: "Store øyne",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0304",
-        type: "Suspending",
-        owner: "Berkley Hit Stick",
-        vessel: "5 cm",
-        seen: "06.06.2026",
-        createdBy: "Knut Arne",
-        lost: false,
-        marking: "Fin gange ved korte stopp.",
-        colors: ["Blå", "Sølv", "Neongrønn"],
-        pattern: "Sølvglitter",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0401",
-        type: "Flytende",
-        owner: "Nils Master Invincible",
-        vessel: "7 cm",
-        seen: "09.06.2026",
-        createdBy: "Frode",
-        lost: false,
-        marking: "Tåler litt raskere fart.",
-        colors: ["Oransje", "Gul", "Svart"],
-        pattern: "Papegøye",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0402",
-        type: "Synkende",
-        owner: "Westin Platypus",
-        vessel: "div cm",
-        seen: "08.06.2026",
-        createdBy: "Frode",
-        lost: false,
-        marking: "Synker raskt, fin ved dyp kant.",
-        colors: ["Kobber", "Rød", "Hvit"],
-        pattern: "Rødlig buk",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0403",
-        type: "Suspending",
-        owner: "Rapala Husky Jerk",
-        vessel: "5 cm",
-        seen: "07.06.2026",
-        createdBy: "Frode",
-        lost: false,
-        marking: "Henger fint i vannet.",
-        colors: ["Sølv", "Svart", "Rosa"],
-        pattern: "Prikkete",
-        events: ["Opprettet som testdata"]
-      },
-      {
-        id: "WB-2026-0404",
-        type: "Dypgående",
-        owner: "Salmo Rattlin Hornet",
-        vessel: "3 cm",
-        seen: "06.06.2026",
-        createdBy: "Frode",
-        lost: false,
-        marking: "Liten, men tydelig vibrasjon.",
-        colors: ["Neongul", "Neonoransje", "Svart"],
-        pattern: "Fluorescerende",
-        events: ["Opprettet som testdata"]
-      }
-    ];
+    const elements = {
+      app: document.querySelector("#app"),
+      loginScreen: document.querySelector("#loginScreen"),
+      loginForm: document.querySelector("#loginForm"),
+      loginUser: document.querySelector("#loginUser"),
+      currentUserLabel: document.querySelector("#currentUserLabel"),
+      catchPage: document.querySelector("#catchPage"),
+      mapPage: document.querySelector("#mapPage"),
+      catchList: document.querySelector("#catchList"),
+      emptyState: document.querySelector("#emptyState"),
+      detailPanel: document.querySelector("#detailPanel"),
+      resultCount: document.querySelector("#resultCount"),
+      searchInput: document.querySelector("#searchInput"),
+      timeFilter: document.querySelector("#timeFilter"),
+      weatherFilter: document.querySelector("#weatherFilter"),
+      catchMap: document.querySelector("#catchMap"),
+      mapYearFilter: document.querySelector("#mapYearFilter"),
+      mapResultCount: document.querySelector("#mapResultCount"),
+      mapSummary: document.querySelector("#mapSummary"),
+      storageStatus: document.querySelector("#storageStatus"),
+      catchModal: document.querySelector("#catchModal"),
+      catchModalTitle: document.querySelector("#catchModalTitle"),
+      catchForm: document.querySelector("#catchForm"),
+      saveCatchBtn: document.querySelector("#saveCatchBtn"),
+      catchDate: document.querySelector("#catchDate"),
+      catchTime: document.querySelector("#catchTime"),
+      catchPosition: document.querySelector("#catchPosition"),
+      catchPositionStatus: document.querySelector("#catchPositionStatus"),
+      choosePositionBtn: document.querySelector("#choosePositionBtn"),
+      catchWeight: document.querySelector("#catchWeight"),
+      catchWeather: document.querySelector("#catchWeather"),
+      catchTemperature: document.querySelector("#catchTemperature"),
+      catchNote: document.querySelector("#catchNote"),
+      mapModal: document.querySelector("#mapModal"),
+      pickerMap: document.querySelector("#pickerMap"),
+      pickerPin: document.querySelector("#pickerPin"),
+      pickerReadout: document.querySelector("#pickerReadout")
+    };
 
-    const defaultCatches = [
-      {
-        id: "FC-2026-0007",
-        date: "2026-06-07",
-        timeOfDay: "Kveld",
-        place: "Storvika, langs marbakken",
-        position: "60.784817 N, 8.527037 E",
-        gearId: "WB-2026-0148",
-        createdBy: "Bjarne",
-        weightGrams: 1200,
-        weatherType: "Lettskyet",
-        temperatureCelsius: 14,
-        note: "Hugg etter to korte pauser."
-      },
-      {
-        id: "FC-2026-0006",
-        date: "2026-06-06",
-        timeOfDay: "Morgen",
-        place: "Tangbeltet ved moloen",
-        position: "60.812 N, 8.552 E",
-        gearId: "WB-2026-0119",
-        createdBy: "Bjarne",
-        weightGrams: 1,
-        weatherType: "Overskyet",
-        temperatureCelsius: 11,
-        note: "Fulgt etter helt inn til land."
-      },
-      {
-        id: "FC-2026-0005",
-        date: "2026-06-05",
-        timeOfDay: "Ettermiddag",
-        place: "Utløpet av elva",
-        position: "60.781 N, 8.486 E",
-        gearId: "WB-2026-0097",
-        createdBy: "Knut Arne",
-        weightGrams: 900,
-        weatherType: "Yr",
-        temperatureCelsius: 10,
-        note: "Kort pause etter hvert tredje sveiv."
-      },
-      {
-        id: "FC-2026-0004",
-        date: "2026-06-01",
-        timeOfDay: "Natt",
-        place: "Dypkanten utenfor skjæret",
-        position: "60.834 N, 8.594 E",
-        gearId: "WB-2026-0061",
-        createdBy: "Frode",
-        weightGrams: 2100,
-        weatherType: "Klarvær",
-        temperatureCelsius: 8,
-        note: "Tok dypt ved rolig fart."
-      },
-      {
-        id: "FC-2026-0101",
-        date: "2026-06-09",
-        timeOfDay: "Morgen",
-        place: "Nordbukta ved sivkanten",
-        position: "60.791180 N, 8.522137 E",
-        gearId: "WB-2026-0201",
-        createdBy: "Bjarne",
-        weightGrams: 760,
-        weatherType: "Klarvær",
-        temperatureCelsius: 13,
-        note: "Tok helt inne ved kanten."
-      },
-      {
-        id: "FC-2026-0102",
-        date: "2026-06-08",
-        timeOfDay: "Ettermiddag",
-        place: "Sundet mot sør",
-        position: "60.786842 N, 8.528733 E",
-        gearId: "WB-2026-0202",
-        createdBy: "Bjarne",
-        weightGrams: 980,
-        weatherType: "Lettskyet",
-        temperatureCelsius: 15,
-        note: "Hugg etter lang pause."
-      },
-      {
-        id: "FC-2026-0103",
-        date: "2026-06-04",
-        timeOfDay: "Kveld",
-        place: "Vika under berget",
-        position: "60.782937 N, 8.533068 E",
-        gearId: "WB-2026-0042",
-        createdBy: "Bjarne",
-        weightGrams: 540,
-        weatherType: "Overskyet",
-        temperatureCelsius: 12,
-        note: "Kort kast langs land."
-      },
-      {
-        id: "FC-2026-0201",
-        date: "2026-06-09",
-        timeOfDay: "Formiddag",
-        place: "Grunna midt på vannet",
-        position: "60.789734 N, 8.526095 E",
-        gearId: "WB-2026-0301",
-        createdBy: "Knut Arne",
-        weightGrams: 640,
-        weatherType: "Regn",
-        temperatureCelsius: 9,
-        note: "Tok under jevn innsveiving."
-      },
-      {
-        id: "FC-2026-0202",
-        date: "2026-06-08",
-        timeOfDay: "Kveld",
-        place: "Østre odde",
-        position: "60.787552 N, 8.532126 E",
-        gearId: "WB-2026-0302",
-        createdBy: "Knut Arne",
-        weightGrams: 1120,
-        weatherType: "Yr",
-        temperatureCelsius: 10,
-        note: "Hogg på første stopp."
-      },
-      {
-        id: "FC-2026-0203",
-        date: "2026-06-07",
-        timeOfDay: "Natt",
-        place: "Dypkanten ved sørenden",
-        position: "60.781491 N, 8.534953 E",
-        gearId: "WB-2026-0303",
-        createdBy: "Knut Arne",
-        weightGrams: 430,
-        weatherType: "Tåke",
-        temperatureCelsius: 7,
-        note: "Svak napp først, så fast fisk."
-      },
-      {
-        id: "FC-2026-0204",
-        date: "2026-06-03",
-        timeOfDay: "Morgen",
-        place: "Inn mot bekken",
-        position: "60.792337 N, 8.519876 E",
-        gearId: "WB-2026-0304",
-        createdBy: "Knut Arne",
-        weightGrams: 870,
-        weatherType: "Overskyet",
-        temperatureCelsius: 11,
-        note: "Tok grunt."
-      },
-      {
-        id: "FC-2026-0301",
-        date: "2026-06-09",
-        timeOfDay: "Ettermiddag",
-        place: "Sørvika ved steinrøysa",
-        position: "60.780912 N, 8.535895 E",
-        gearId: "WB-2026-0401",
-        createdBy: "Frode",
-        weightGrams: 1330,
-        weatherType: "Klarvær",
-        temperatureCelsius: 16,
-        note: "Tok hardt på rask innsveiving."
-      },
-      {
-        id: "FC-2026-0302",
-        date: "2026-06-08",
-        timeOfDay: "Kveld",
-        place: "Langs vestbredden",
-        position: "60.788420 N, 8.520818 E",
-        gearId: "WB-2026-0402",
-        createdBy: "Frode",
-        weightGrams: 690,
-        weatherType: "Lettskyet",
-        temperatureCelsius: 14,
-        note: "Hugg tett på land."
-      },
-      {
-        id: "FC-2026-0303",
-        date: "2026-06-07",
-        timeOfDay: "Morgen",
-        place: "Ved lille odden",
-        position: "60.784648 N, 8.529298 E",
-        gearId: "WB-2026-0403",
-        createdBy: "Frode",
-        weightGrams: 510,
-        weatherType: "Regn",
-        temperatureCelsius: 8,
-        note: "Tok etter to små rykk."
-      },
-      {
-        id: "FC-2026-0304",
-        date: "2026-06-02",
-        timeOfDay: "Formiddag",
-        place: "Grunt belte mot nord",
-        position: "60.790891 N, 8.523268 E",
-        gearId: "WB-2026-0404",
-        createdBy: "Frode",
-        weightGrams: 390,
-        weatherType: "Overskyet",
-        temperatureCelsius: 9,
-        note: "Liten fisk, men god respons."
-      }
-    ];
-
-    let gear = [...defaultGear];
-    let catches = [...defaultCatches];
-
-    function loadSavedData() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-        if (saved && Array.isArray(saved.gear) && Array.isArray(saved.catches)) {
-          gear = saved.gear.map(normalizeGear);
-          catches = saved.catches.map(normalizeCatch);
-        }
-      } catch (error) {
-        console.warn("Kunne ikke laste lagrede data", error);
-      }
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    function ensureDefaultTestData() {
-      let changed = false;
-      const gearIds = new Set(gear.map(item => item.id));
-      defaultGear.forEach(item => {
-        if (!gearIds.has(item.id)) {
-          gear.push(normalizeGear(item));
-          changed = true;
-        }
-      });
-
-      const catchIds = new Set(catches.map(item => item.id));
-      defaultCatches.forEach(item => {
-        if (!catchIds.has(item.id)) {
-          catches.push(normalizeCatch(item));
-          changed = true;
-        }
-      });
-
-      if (changed) saveData();
+    function localDateString(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     }
 
-    function normalizeGear(item) {
-      const allowedLengths = ["3 cm", "5 cm", "7 cm", "div cm"];
-      const normalizedColors = Array.isArray(item.colors) ? item.colors.slice(0, 3) : [];
-      while (normalizedColors.length < 3) normalizedColors.push("Hvit");
-      const { position, status, ...gearData } = item;
-      return {
-        ...gearData,
-        createdBy: USER_OPTIONS.includes(item.createdBy) ? item.createdBy : "Bjarne",
-        lost: item.lost === true || status === "Ute av bruk",
-        vessel: allowedLengths.includes(item.vessel) ? item.vessel : "div cm",
-        pattern: PATTERN_OPTIONS.includes(item.pattern) ? item.pattern : "Fiskmønster",
-        colors: normalizedColors.map(color => {
-          const normalized = COLOR_ALIASES[color] || color;
-          return COLOR_OPTIONS.includes(normalized) ? normalized : "Hvit";
-        })
-      };
+    function formatDate(value) {
+      if (!value) return "Ukjent dato";
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      return new Intl.DateTimeFormat("nb-NO", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }).format(date);
+    }
+
+    function timeOfDayNow() {
+      const hour = new Date().getHours();
+      if (hour < 6) return "Natt";
+      if (hour < 10) return "Morgen";
+      if (hour < 13) return "Formiddag";
+      if (hour < 18) return "Ettermiddag";
+      if (hour < 23) return "Kveld";
+      return "Natt";
+    }
+
+    function normalizeWeight(value) {
+      const number = Number(String(value == null ? "" : value).replace(",", "."));
+      if (!Number.isFinite(number)) return 1;
+      return Math.max(1, Math.min(9999, Math.round(number)));
+    }
+
+    function normalizeTemperature(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 10;
+      return Math.max(-30, Math.min(40, Math.round(number)));
     }
 
     function normalizeCatch(item) {
-      const { fish, ...catchData } = item;
+      const source = item || {};
       return {
-        ...catchData,
-        createdBy: USER_OPTIONS.includes(item.createdBy) ? item.createdBy : "Bjarne",
-        position: normalizeMapPosition(item.position),
-        weightGrams: normalizeWeightGrams(item.weightGrams ?? fish),
-        weatherType: WEATHER_OPTIONS.includes(item.weatherType) ? item.weatherType : "Overskyet",
-        temperatureCelsius: normalizeTemperatureCelsius(item.temperatureCelsius)
+        id: String(source.id || createId()),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(source.date || "") ? source.date : localDateString(),
+        timeOfDay: ["Morgen", "Formiddag", "Ettermiddag", "Kveld", "Natt"].includes(source.timeOfDay)
+          ? source.timeOfDay
+          : "Ettermiddag",
+        position: normalizeMapPosition(source.position),
+        createdBy: USERS.includes(source.createdBy) ? source.createdBy : "Bjarne",
+        weightGrams: normalizeWeight(source.weightGrams != null ? source.weightGrams : source.fish),
+        weatherType: WEATHER_OPTIONS.includes(source.weatherType) ? source.weatherType : "Overskyet",
+        temperatureCelsius: normalizeTemperature(source.temperatureCelsius),
+        note: String(source.note || ""),
+        createdAt: Number(source.createdAt) || Date.now()
       };
     }
 
-    function normalizeWeightGrams(value) {
-      if (typeof value === "number" && Number.isFinite(value)) {
-        return Math.max(1, Math.min(9999, Math.round(value)));
+    function createId() {
+      return `FC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    }
+
+    function loadData() {
+      try {
+        const current = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (current && Array.isArray(current.catches)) {
+          catches = current.catches.map(normalizeCatch);
+          return;
+        }
+
+        const previous = JSON.parse(localStorage.getItem(PREVIOUS_STORAGE_KEY) || "null");
+        if (previous && Array.isArray(previous.catches)) {
+          catches = previous.catches.map(normalizeCatch);
+          saveData();
+          return;
+        }
+      } catch (error) {
+        console.warn("Kunne ikke lese lagrede fangster", error);
       }
-      const text = String(value || "").replace(",", ".").toLowerCase();
-      const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg/);
-      if (kgMatch) return Math.max(1, Math.min(9999, Math.round(Number(kgMatch[1]) * 1000)));
-      const gramMatch = text.match(/(\d+)\s*g/);
-      if (gramMatch) return Math.max(1, Math.min(9999, Number(gramMatch[1])));
-      const numberMatch = text.match(/\d+/);
-      if (numberMatch) return Math.max(1, Math.min(9999, Number(numberMatch[0])));
-      return 1;
-    }
-
-    function formatWeightGrams(value) {
-      return `${normalizeWeightGrams(value)} g`;
-    }
-
-    function normalizeTemperatureCelsius(value) {
-      const number = Number(value);
-      if (!Number.isFinite(number)) return 12;
-      return Math.max(0, Math.min(25, Math.round(number)));
-    }
-
-    function formatTemperatureCelsius(value) {
-      return `${normalizeTemperatureCelsius(value)} °C`;
+      catches = [];
     }
 
     function saveData() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ gear, catches }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, catches }));
         storageWorks = true;
         updateStorageStatus();
         return true;
       } catch (error) {
         storageWorks = false;
-        updateStorageStatus("Denne nettleseren blokkerer permanent lagring. Endringer vises nå, men kan forsvinne når siden lukkes.");
-        console.warn("Kunne ikke lagre data", error);
+        updateStorageStatus();
+        console.warn("Kunne ikke lagre fangster", error);
         return false;
       }
     }
 
     function testStorage() {
       try {
-        localStorage.setItem("wobblerregister.test", "ok");
-        localStorage.removeItem("wobblerregister.test");
+        localStorage.setItem("regiversj.storage-test", "ok");
+        localStorage.removeItem("regiversj.storage-test");
         storageWorks = true;
       } catch (error) {
         storageWorks = false;
@@ -1824,570 +1518,306 @@
       updateStorageStatus();
     }
 
-    function updateStorageStatus(message) {
-      const status = document.querySelector("#storageStatus");
-      if (!status) return;
-      if (message) {
-        status.textContent = message;
-        status.classList.add("warning");
-        return;
-      }
-      status.textContent = storageWorks ? "" : "Lagring ikke tilgjengelig";
-      status.classList.toggle("warning", !storageWorks);
+    function updateStorageStatus() {
+      elements.storageStatus.textContent = storageWorks ? "" : "Lagring er ikke tilgjengelig";
     }
 
     function showLogin() {
-      document.body.classList.add("login-active");
-      loginUser.focus();
+      elements.app.hidden = true;
+      elements.loginScreen.hidden = false;
+      setTimeout(() => elements.loginUser.focus(), 0);
     }
 
-    function showAppForUser(userName) {
-      if (!userName) {
-        showLogin();
-        return;
-      }
-      try {
-        localStorage.setItem(USER_KEY, userName);
-      } catch (error) {
-        console.warn("Kunne ikke lagre valgt bruker", error);
-      }
+    function showApp(userName) {
+      if (!USERS.includes(userName)) return;
       currentUser = userName;
-      currentUserLabel.textContent = userName;
-      renderWobblerOptions();
-      document.body.classList.remove("login-active");
-      goHome();
+      localStorage.setItem(USER_KEY, userName);
+      elements.currentUserLabel.textContent = userName;
+      elements.loginScreen.hidden = true;
+      elements.app.hidden = false;
+      const newest = latestCatch(mine());
+      selectedCatchId = newest ? newest.id : "";
+      renderAll();
     }
 
     function loadCurrentUser() {
-      let savedUser = "";
-      try {
-        savedUser = localStorage.getItem(USER_KEY) || "";
-      } catch (error) {
-        savedUser = "";
-      }
-      if (savedUser) {
-        loginUser.value = savedUser;
-        showAppForUser(savedUser);
+      const savedUser = localStorage.getItem(USER_KEY) || "";
+      if (USERS.includes(savedUser)) {
+        elements.loginUser.value = savedUser;
+        showApp(savedUser);
       } else {
         showLogin();
       }
     }
 
-    const loginForm = document.querySelector("#loginForm");
-    const loginUser = document.querySelector("#loginUser");
-    const currentUserLabel = document.querySelector("#currentUserLabel");
-    const switchUserBtn = document.querySelector("#switchUserBtn");
-    const rows = document.querySelector("#gearRows");
-    const catchRows = document.querySelector("#catchRows");
-    const search = document.querySelector("#search");
-    const typeFilter = document.querySelector("#typeFilter");
-    const emptyState = document.querySelector("#emptyState");
-    const catchEmptyState = document.querySelector("#catchEmptyState");
-    const catchSearch = document.querySelector("#catchSearch");
-    const catchTimeFilter = document.querySelector("#catchTimeFilter");
-    const catchWobblerFilter = document.querySelector("#catchWobblerFilter");
-    const catchTableSection = document.querySelector("#catchTableSection");
-    const catchMapSection = document.querySelector("#catchMapSection");
-    const catchMap = document.querySelector("#catchMap");
-    const catchMapEmptyState = document.querySelector("#catchMapEmptyState");
-    const content = document.querySelector(".content");
-    const modal = document.querySelector("#modal");
-    const catchModal = document.querySelector("#catchModal");
-    const mapModal = document.querySelector("#mapModal");
-    let mapTargetInput = null;
-    let selectedMapPosition = MAP_CENTER_POSITION;
-    let activeView = "wobblers";
-    let overviewFilter = "active";
-    let catchOverview = "week";
-    let editingWobblerId = null;
-    let selectedId = gear[0].id;
-    let selectedCatchId = catches[0]?.id || "";
-    let currentUser = "";
-
-    function iconFor(type) {
-      return type === "Synkende" ? "↓" : type === "Suspending" ? "↔" : type === "Dypgående" ? "⌄" : "≈";
+    function mine() {
+      return catches.filter(item => item.createdBy === currentUser);
     }
 
-    function isLostWobbler(item) {
-      return item.lost === true;
-    }
-
-    function belongsToCurrentUser(item) {
-      return !currentUser || item.createdBy === currentUser;
-    }
-
-    function renderColors(colors) {
-      return `<div class="colors">${colors.map(color => `<span class="color-chip">${color}</span>`).join("")}</div>`;
-    }
-
-    function filteredGear() {
-      const query = search.value.trim().toLowerCase();
-      return gear.filter(item => {
-        const text = [item.id, item.type, item.owner, item.vessel, item.pattern, ...item.colors].join(" ").toLowerCase();
-        return belongsToCurrentUser(item)
-          && (!query || text.includes(query))
-          && (!typeFilter.value || item.type === typeFilter.value)
-          && (overviewFilter !== "active" || !isLostWobbler(item))
-          && (overviewFilter !== "lost" || isLostWobbler(item))
-          && (overviewFilter !== "withCatch" || catchCountFor(item.id) > 0)
-          && (overviewFilter !== "noCatch" || catchCountFor(item.id) === 0);
-      });
-    }
-
-    function wobblerName(id) {
-      return gear.find(item => item.id === id)?.owner || id;
-    }
-
-    function catchCountFor(id) {
-      return catches.filter(item => item.gearId === id && belongsToCurrentUser(item)).length;
-    }
-
-    function latestCatch(items = catches) {
+    function latestCatch(items) {
       return [...items].sort((a, b) => {
         const dateCompare = String(b.date).localeCompare(String(a.date));
-        if (dateCompare) return dateCompare;
-        return String(b.id).localeCompare(String(a.id));
-      })[0] || null;
-    }
-
-    function parseLocalDate(value) {
-      const [year, month, day] = String(value || "").split("-").map(Number);
-      if (!year || !month || !day) return null;
-      return new Date(year, month - 1, day);
-    }
-
-    function isCatchWithinLastWeek(item) {
-      const date = parseLocalDate(item.date);
-      if (!date) return false;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const start = new Date(today);
-      start.setDate(today.getDate() - 6);
-      return date >= start && date <= today;
+        return dateCompare || b.createdAt - a.createdAt;
+      })[0];
     }
 
     function filteredCatches() {
-      const query = catchSearch.value.trim().toLowerCase();
-      return catches.filter(item => {
-        const text = [item.id, item.date, item.timeOfDay, item.place, item.position, item.weightGrams, item.weatherType, item.temperatureCelsius, item.note, wobblerName(item.gearId)].join(" ").toLowerCase();
-        return belongsToCurrentUser(item)
-          && (!query || text.includes(query))
-          && (catchOverview !== "week" || isCatchWithinLastWeek(item))
-          && (!catchTimeFilter.value || item.timeOfDay === catchTimeFilter.value)
-          && (!catchWobblerFilter.value || item.gearId === catchWobblerFilter.value);
-      });
+      const query = elements.searchInput.value.trim().toLowerCase();
+      const time = elements.timeFilter.value;
+      const weather = elements.weatherFilter.value;
+
+      return mine()
+        .filter(item => {
+          const haystack = [item.date, item.timeOfDay, item.weatherType, item.note, item.weightGrams]
+            .join(" ")
+            .toLowerCase();
+          return (!query || haystack.includes(query))
+            && (!time || item.timeOfDay === time)
+            && (!weather || item.weatherType === weather);
+        })
+        .sort((a, b) => {
+          const dateCompare = String(b.date).localeCompare(String(a.date));
+          return dateCompare || b.createdAt - a.createdAt;
+        });
+    }
+
+    function isWithinLastWeek(item) {
+      const [year, month, day] = item.date.split("-").map(Number);
+      const catchDate = new Date(year, month - 1, day);
+      catchDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const difference = today - catchDate;
+      return difference >= 0 && difference <= 6 * 24 * 60 * 60 * 1000;
     }
 
     function renderStats() {
-      const userGear = gear.filter(belongsToCurrentUser);
-      const userCatches = catches.filter(belongsToCurrentUser);
-      document.querySelector("#statTotal").textContent = userGear.filter(item => !isLostWobbler(item)).length;
-      document.querySelector("#statWithCatch").textContent = userGear.filter(item => catchCountFor(item.id) > 0).length;
-      document.querySelector("#statLost").textContent = userGear.filter(isLostWobbler).length;
-      document.querySelector("#statNoCatch").textContent = userGear.filter(item => catchCountFor(item.id) === 0).length;
-      document.querySelector("#catchStatWeek").textContent = userCatches.filter(isCatchWithinLastWeek).length;
-      document.querySelector("#catchStatTotal").textContent = userCatches.length;
-      document.querySelector("#catchStatMap").textContent = catches.filter(item => normalizeMapPosition(item.position)).length;
-      document.querySelectorAll("[data-overview]").forEach(card => {
-        card.classList.toggle("active", card.dataset.overview === overviewFilter);
-      });
-      document.querySelectorAll("[data-catch-overview]").forEach(card => {
-        card.classList.toggle("active", card.dataset.catchOverview === catchOverview);
-      });
+      const items = mine();
+      document.querySelector("#statTotal").textContent = items.length;
+      document.querySelector("#statWeek").textContent = items.filter(isWithinLastWeek).length;
+      document.querySelector("#statMapped").textContent = items.filter(item => item.position).length;
     }
 
-    function updateContentMode() {
-      content.classList.toggle("map-mode", activeView === "catches" && catchOverview === "map");
-    }
+    function renderList() {
+      const items = filteredCatches();
+      elements.catchList.innerHTML = "";
+      elements.emptyState.hidden = items.length > 0;
+      elements.resultCount.textContent = `${items.length} ${items.length === 1 ? "fangst" : "fangster"}`;
 
-    function renderTable() {
-      const items = filteredGear();
-      rows.innerHTML = "";
-      emptyState.classList.toggle("visible", items.length === 0);
-
-      items.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.className = item.id === selectedId ? "selected" : "";
-        tr.tabIndex = 0;
-        tr.innerHTML = `
-          <td>
-            <div class="gear-cell">
-              <span class="gear-icon" aria-hidden="true">${iconFor(item.type)}</span>
-              <div><strong>${item.owner}</strong><span>${item.id} · ${item.type} · ${item.vessel}</span></div>
-            </div>
-          </td>
-          <td>${renderColors(item.colors)}</td>
-          <td>${item.pattern}</td>
-          <td>${item.vessel}</td>
-          <td>${catchCountFor(item.id)}</td>
-          <td><input type="checkbox" aria-label="Mistet ${item.owner}" data-lost-wobbler="${item.id}" ${isLostWobbler(item) ? "checked" : ""}></td>
-        `;
-        tr.querySelector("[data-lost-wobbler]").addEventListener("click", event => {
-          event.stopPropagation();
-          toggleLostWobbler(item.id, event.target.checked);
-        });
-        tr.addEventListener("click", () => selectGear(item.id));
-        tr.addEventListener("keydown", event => {
-          if (event.key === "Enter" || event.key === " ") selectGear(item.id);
-        });
-        rows.appendChild(tr);
-      });
-
-      if (!items.some(item => item.id === selectedId) && items[0]) selectGear(items[0].id, false);
-    }
-
-    function renderCatchTable() {
-      const items = catchOverview === "map" ? catches : filteredCatches();
-      updateContentMode();
-      catchTableSection.hidden = catchOverview === "map";
-      catchMapSection.hidden = catchOverview !== "map";
-      catchRows.innerHTML = "";
-      catchEmptyState.classList.toggle("visible", items.length === 0);
-
-      if (activeView === "catches" && items.length && !items.some(item => item.id === selectedCatchId)) {
-        selectedCatchId = latestCatch(items).id;
+      if (items.length && !items.some(item => item.id === selectedCatchId)) {
+        selectedCatchId = items[0].id;
       }
 
       items.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.className = item.id === selectedCatchId ? "selected" : "";
-        tr.tabIndex = 0;
-        tr.innerHTML = `
-          <td><strong>${item.date}</strong><br><span class="badge active">${item.timeOfDay}</span></td>
-          <td>${item.place}</td>
-          <td>${wobblerName(item.gearId)}</td>
-          <td>${item.timeOfDay}</td>
-          <td>${formatWeightGrams(item.weightGrams)}</td>
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = `catch-row${item.id === selectedCatchId ? " selected" : ""}`;
+        row.innerHTML = `
+          <span class="catch-date">${escapeHtml(formatDate(item.date))}</span>
+          <span class="catch-place">
+            <strong>Fangst</strong>
+            <span>${escapeHtml(item.timeOfDay)} · ${escapeHtml(item.weatherType)}${item.position ? " · På kartet" : ""}</span>
+          </span>
+          <span class="catch-weight">${item.weightGrams} g</span>
         `;
-        tr.addEventListener("click", () => selectCatch(item.id));
-        tr.addEventListener("keydown", event => {
-          if (event.key === "Enter" || event.key === " ") selectCatch(item.id);
-        });
-        catchRows.appendChild(tr);
+        row.addEventListener("click", () => selectCatch(item.id));
+        elements.catchList.appendChild(row);
       });
 
-      renderCatchMap(items);
+      renderDetail();
     }
 
-    function renderCatchMap(items) {
-      catchMap.innerHTML = "";
-      const mappedItems = items.filter(item => normalizeMapPosition(item.position));
-      catchMapEmptyState.classList.toggle("visible", mappedItems.length === 0);
+    function selectCatch(id) {
+      selectedCatchId = id;
+      renderList();
+      renderMap();
+    }
 
-      mappedItems.forEach(item => {
-        const point = positionToMapPoint(item.position);
+    function renderDetail() {
+      const item = catches.find(entry => entry.id === selectedCatchId && entry.createdBy === currentUser);
+      if (!item) {
+        elements.detailPanel.innerHTML = `
+          <div class="empty-state">
+            <strong>${mine().length ? "Velg en fangst" : "Ingen fangster ennå"}</strong>
+            ${mine().length ? "Detaljene vises her." : "Registrer den første fangsten med knappen øverst."}
+          </div>
+        `;
+        return;
+      }
+
+      const point = item.position ? positionToVisibleMapPoint(item.position) : null;
+      elements.detailPanel.innerHTML = `
+        <div class="detail-hero">
+          <span class="weight-badge">${item.weightGrams} g</span>
+          <h3>Fangst</h3>
+          <p>${escapeHtml(formatDate(item.date))} · ${escapeHtml(item.timeOfDay)}</p>
+        </div>
+        <div class="detail-map${point ? "" : " no-position"}">
+          ${point ? `<span class="map-pin" style="left:${point.x}%;top:${point.y}%"></span>` : ""}
+        </div>
+        <div class="detail-data">
+          <div><span>Dato</span><strong>${escapeHtml(formatDate(item.date))}</strong></div>
+          <div><span>Tid</span><strong>${escapeHtml(item.timeOfDay)}</strong></div>
+          <div><span>Vær</span><strong>${escapeHtml(item.weatherType)}</strong></div>
+          <div><span>Temperatur</span><strong>${item.temperatureCelsius} °C</strong></div>
+          <div style="grid-column:1/-1"><span>Posisjon</span><strong>${escapeHtml(item.position || "Ikke valgt")}</strong></div>
+        </div>
+        <div class="detail-note">
+          <span>Notat</span>
+          <p>${escapeHtml(item.note || "Ingen notat.")}</p>
+        </div>
+        <div class="detail-actions">
+          <button class="danger-btn" type="button" data-delete-catch="${escapeHtml(item.id)}">Slett</button>
+          <button class="primary-btn" type="button" data-edit-catch="${escapeHtml(item.id)}">Rediger</button>
+        </div>
+      `;
+
+      elements.detailPanel.querySelector("[data-edit-catch]").addEventListener("click", () => openCatchModal(item.id));
+      elements.detailPanel.querySelector("[data-delete-catch]").addEventListener("click", () => deleteCatch(item.id));
+    }
+
+    function renderMapFilters() {
+      const currentYear = elements.mapYearFilter.value;
+      const years = catches
+        .map(item => String(item.date || "").slice(0, 4))
+        .filter(year => /^\d{4}$/.test(year))
+        .filter((year, index, list) => list.indexOf(year) === index)
+        .sort((a, b) => b.localeCompare(a));
+
+      elements.mapYearFilter.innerHTML = `<option value="">Alle år</option>${years
+        .map(year => `<option value="${year}">${year}</option>`)
+        .join("")}`;
+      elements.mapYearFilter.value = years.includes(currentYear) ? currentYear : "";
+    }
+
+    function selectedMapUsers() {
+      return Array.from(document.querySelectorAll("[data-map-user]"))
+        .filter(input => input.checked)
+        .map(input => input.value);
+    }
+
+    function renderMap() {
+      const selectedYear = elements.mapYearFilter.value;
+      const selectedUsers = selectedMapUsers();
+      const mapped = catches.filter(item => {
+        return item.position
+          && (!selectedYear || String(item.date).startsWith(selectedYear))
+          && selectedUsers.includes(item.createdBy);
+      });
+      elements.catchMap.innerHTML = "";
+      const mapCanvas = document.createElement("div");
+      mapCanvas.className = "catch-map-canvas";
+      mapCanvas.setAttribute("aria-label", "Hele fangstkartet");
+      elements.catchMap.appendChild(mapCanvas);
+
+      mapped.forEach(item => {
+        const point = positionToVisibleMapPoint(item.position);
         const dot = document.createElement("button");
-        dot.className = "catch-dot";
         dot.type = "button";
+        dot.className = `catch-dot${item.id === selectedCatchId ? " selected" : ""}`;
         dot.style.left = `${point.x}%`;
         dot.style.top = `${point.y}%`;
-        dot.style.background = USER_DOT_COLORS[item.createdBy] || "#bc3f3f";
-        dot.title = `${item.createdBy || "Ukjent"} · ${item.date} · ${item.place} · ${wobblerName(item.gearId)} · ${formatWeightGrams(item.weightGrams)}`;
+        dot.style.background = USER_COLORS[item.createdBy] || "#b33d36";
+        dot.title = `${item.createdBy} · ${formatDate(item.date)} · ${item.weightGrams} g`;
         dot.setAttribute("aria-label", dot.title);
-        dot.addEventListener("click", () => selectCatch(item.id));
-        catchMap.appendChild(dot);
-      });
-    }
-
-    function renderWobblerOptions() {
-      const options = gear.filter(belongsToCurrentUser).map(item => `<option value="${item.id}">${item.owner} (${item.colors.join(", ")})</option>`).join("");
-      document.querySelector("#catchWobbler").innerHTML = options;
-      catchWobblerFilter.innerHTML = `<option value="">Alle wobblere</option>${options}`;
-    }
-
-    function renderColorOptions() {
-      const options = COLOR_OPTIONS.map(color => `<option value="${color}">${color}</option>`).join("");
-      ["#formColor1", "#formColor2", "#formColor3"].forEach(selector => {
-        document.querySelector(selector).innerHTML = options;
-      });
-      document.querySelector("#formColor1").value = "Sølv";
-      document.querySelector("#formColor2").value = "Blå";
-      document.querySelector("#formColor3").value = "Oransje";
-    }
-
-    function renderPatternOptions() {
-      document.querySelector("#formPattern").innerHTML = PATTERN_OPTIONS.map(pattern => `<option value="${pattern}">${pattern}</option>`).join("");
-      document.querySelector("#formPattern").value = "Fiskmønster";
-    }
-
-    function setDetailLabels(labels) {
-      Object.entries(labels).forEach(([selector, text]) => {
-        document.querySelector(selector).textContent = text;
-      });
-    }
-
-    function setWobblerDetailLabels() {
-      setDetailLabels({
-        "#detailIdLabel": "ID",
-        "#detailTypeLabel": "Modell",
-        "#detailOwnerLabel": "Navn",
-        "#detailVesselLabel": "Lengde",
-        "#detailColorsLabel": "Farger",
-        "#detailPatternLabel": "Mønster",
-        "#detailCatchCountLabel": "Fangster",
-        "#detailMarkingLabel": "Notat"
-      });
-    }
-
-    function setCatchDetailLabels() {
-      setDetailLabels({
-        "#detailIdLabel": "ID",
-        "#detailTypeLabel": "Dato",
-        "#detailOwnerLabel": "Wobbler",
-        "#detailVesselLabel": "Tid på døgnet",
-        "#detailColorsLabel": "Vekt",
-        "#detailPatternLabel": "Værtype",
-        "#detailCatchCountLabel": "Temperatur",
-        "#detailMarkingLabel": "Notat"
-      });
-    }
-
-    function selectGear(id, rerender = true) {
-      selectedId = id;
-      const item = gear.find(entry => entry.id === id && belongsToCurrentUser(entry)) || filteredGear()[0];
-      setWobblerDetailLabels();
-      document.querySelector("#detailActions").hidden = false;
-      document.querySelector("#markLostBtn").hidden = false;
-      document.querySelector("#detailStatus").hidden = true;
-      document.querySelector("#detailSectionTitle").textContent = "Wobblerdata";
-      document.querySelector("#detailMap").className = "map";
-      document.querySelector("#detailMap").hidden = true;
-      document.querySelector("#detailPin").removeAttribute("style");
-      if (!item) {
-        setWobblerDetailLabels();
-        document.querySelector("#detailName").textContent = "Ingen wobblere";
-        document.querySelector("#detailSub").textContent = "Legg inn en ny wobbler";
-        document.querySelector("#detailStatus").hidden = true;
-        document.querySelector("#detailMap").hidden = true;
-        document.querySelector("#markLostBtn").hidden = false;
-        ["#detailId", "#detailType", "#detailOwner", "#detailVessel", "#detailColors", "#detailPattern", "#detailCatchCount", "#detailMarking"].forEach(selector => {
-          document.querySelector(selector).textContent = "-";
+        dot.addEventListener("click", () => {
+          selectedCatchId = item.id;
+          renderMap();
         });
-        document.querySelector("#timeline").innerHTML = "";
-        if (rerender) renderTable();
-        return;
-      }
-      document.querySelector("#detailName").textContent = item.owner;
-      document.querySelector("#detailSub").textContent = `${item.type} · ${item.seen}`;
-      document.querySelector("#detailStatus").hidden = true;
-      document.querySelector("#detailId").textContent = item.id;
-      document.querySelector("#detailType").textContent = item.type;
-      document.querySelector("#detailOwner").textContent = item.owner;
-      document.querySelector("#detailVessel").textContent = item.vessel;
-      document.querySelector("#detailColors").textContent = item.colors.join(", ");
-      document.querySelector("#detailPattern").textContent = item.pattern;
-      document.querySelector("#detailCatchCount").textContent = catchCountFor(item.id);
-      document.querySelector("#detailMarking").textContent = item.marking;
-      document.querySelector("#timeline").innerHTML = item.events.map(event => `
-        <div class="event"><span class="dot"></span><span>${event}</span></div>
-      `).join("");
-      if (rerender) renderTable();
+        mapCanvas.appendChild(dot);
+      });
+
+      elements.mapResultCount.textContent = `${mapped.length} ${mapped.length === 1 ? "fangst" : "fangster"} på kartet`;
+
+      const selected = catches.find(item => item.id === selectedCatchId && item.position);
+      elements.mapSummary.innerHTML = selected
+        ? `<div><strong>${selected.weightGrams} g fangst</strong><span>${escapeHtml(selected.createdBy)} · ${escapeHtml(formatDate(selected.date))}</span></div>`
+        : `<span>${mapped.length ? "Trykk på et punkt for å se fangsten" : "Ingen fangster med kartposisjon"}</span>`;
     }
 
-    function selectCatch(id, rerender = true) {
-      const item = catches.find(entry => entry.id === id && (catchOverview === "map" || belongsToCurrentUser(entry))) || latestCatch(filteredCatches());
-      setCatchDetailLabels();
-      if (!item) {
-        selectedCatchId = "";
-        document.querySelector("#detailName").textContent = "Ingen fangster";
-        document.querySelector("#detailSub").textContent = "Legg inn en ny fangst";
-        document.querySelector("#detailStatus").textContent = "-";
-        document.querySelector("#detailStatus").className = "badge warning";
-        document.querySelector("#detailStatus").hidden = false;
-        document.querySelector("#detailSectionTitle").textContent = "Fangstdata";
-        document.querySelector("#detailMap").className = "map catch-detail-map";
-        document.querySelector("#detailMap").hidden = false;
-        document.querySelector("#detailPin").style.display = "none";
-        document.querySelector("#detailActions").hidden = true;
-        document.querySelector("#markLostBtn").hidden = true;
-        ["#detailId", "#detailType", "#detailOwner", "#detailVessel", "#detailColors", "#detailPattern", "#detailCatchCount", "#detailMarking"].forEach(selector => {
-          document.querySelector(selector).textContent = "-";
-        });
-        document.querySelector("#timeline").innerHTML = "";
-        if (rerender) renderCatchTable();
-        return;
-      }
-
-      selectedCatchId = item.id;
-      selectedId = item.gearId;
-      const wobbler = gear.find(entry => entry.id === item.gearId);
-      document.querySelector("#detailName").textContent = item.place;
-      document.querySelector("#detailSub").textContent = `${item.date} · ${item.timeOfDay}`;
-      document.querySelector("#detailStatus").textContent = formatWeightGrams(item.weightGrams);
-      document.querySelector("#detailStatus").className = "badge active";
-      document.querySelector("#detailStatus").hidden = false;
-      document.querySelector("#detailSectionTitle").textContent = "Fangstdata";
-      document.querySelector("#detailActions").hidden = true;
-      document.querySelector("#markLostBtn").hidden = true;
-
-      const detailMap = document.querySelector("#detailMap");
-      const detailPin = document.querySelector("#detailPin");
-      detailMap.className = "map catch-detail-map";
-      detailMap.hidden = false;
-      if (normalizeMapPosition(item.position)) {
-        const point = positionToMapPoint(item.position);
-        detailPin.style.display = "block";
-        detailPin.style.left = `${point.x}%`;
-        detailPin.style.top = `${point.y}%`;
-      } else {
-        detailPin.style.display = "none";
-      }
-
-      document.querySelector("#detailId").textContent = item.id;
-      document.querySelector("#detailType").textContent = item.date;
-      document.querySelector("#detailOwner").textContent = wobbler ? `${wobbler.owner} (${wobbler.colors.join(", ")})` : item.gearId;
-      document.querySelector("#detailVessel").textContent = item.timeOfDay;
-      document.querySelector("#detailColors").textContent = formatWeightGrams(item.weightGrams);
-      document.querySelector("#detailPattern").textContent = item.weatherType;
-      document.querySelector("#detailCatchCount").textContent = formatTemperatureCelsius(item.temperatureCelsius);
-      document.querySelector("#detailMarking").textContent = item.note || "-";
-      document.querySelector("#timeline").innerHTML = `
-        <div class="event"><span class="dot"></span><span>Fangst logget ${item.date}</span></div>
-        <div class="event"><span class="dot"></span><span>${item.place}</span></div>
-        <div class="event"><span class="dot"></span><span>${wobbler ? wobbler.owner : item.gearId}</span></div>
-      `;
-      if (rerender) renderCatchTable();
-    }
-
-    function deleteWobbler(id) {
-      const item = gear.find(entry => entry.id === id);
-      if (!item) return;
-      const relatedCatches = catchCountFor(id);
-      const message = relatedCatches > 0
-        ? `Slette ${item.owner} og ${relatedCatches} tilknyttede fangster?`
-        : `Slette ${item.owner}?`;
-      if (!confirm(message)) return;
-
-      for (let index = catches.length - 1; index >= 0; index--) {
-        if (catches[index].gearId === id) catches.splice(index, 1);
-      }
-      const gearIndex = gear.findIndex(entry => entry.id === id);
-      if (gearIndex >= 0) gear.splice(gearIndex, 1);
-      selectedId = gear[0]?.id || "";
-      saveData();
-      renderWobblerOptions();
+    function renderAll() {
       renderStats();
-      renderTable();
-      renderCatchTable();
-      selectGear(selectedId, false);
-    }
-
-    function toggleLostWobbler(id, isLost) {
-      const item = gear.find(entry => entry.id === id);
-      if (!item) return;
-      item.lost = isLost;
-      item.events.unshift(isLost ? "Markert som mistet" : "Mistet-markering fjernet");
-      saveData();
-      renderStats();
-      selectGear(id);
+      renderList();
+      renderMapFilters();
+      renderMap();
     }
 
     function setView(view) {
       activeView = view;
-      if (view === "catches") catchOverview = "week";
-      updateContentMode();
-      document.querySelector("#wobblerView").classList.toggle("active", view === "wobblers");
-      document.querySelector("#catchView").classList.toggle("active", view === "catches");
-      document.querySelector("#wobblerTab").classList.toggle("active", view === "wobblers");
-      document.querySelector("#catchTab").classList.toggle("active", view === "catches");
-      document.querySelector("#openModalBtn").textContent = view === "wobblers" ? "+ Ny wobbler" : "+ Ny fangst";
-      renderStats();
-      renderTable();
-      renderCatchTable();
-      if (view === "catches") {
-        selectCatch(latestCatch(filteredCatches())?.id || "", false);
-        renderCatchTable();
-      } else {
-        selectGear(selectedId, false);
-      }
+      elements.catchPage.hidden = view !== "catches";
+      elements.mapPage.hidden = view !== "map";
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.classList.toggle("active", button.dataset.view === view);
+      });
+      if (view === "map") renderMap();
     }
 
-    function showOverview(kind) {
-      overviewFilter = kind;
-      setView("wobblers");
-    }
-
-    function goHome() {
-      overviewFilter = "active";
-      search.value = "";
-      typeFilter.value = "";
-      selectedId = filteredGear()[0]?.id || gear.find(belongsToCurrentUser)?.id || "";
-      setView("wobblers");
-      selectGear(selectedId);
-    }
-
-    function showCatchOverview(kind) {
-      catchOverview = kind;
-      updateContentMode();
-      renderStats();
-      renderCatchTable();
-      if (kind !== "map") {
-        selectCatch(latestCatch(filteredCatches())?.id || "", false);
-        renderCatchTable();
-      }
-    }
-
-    function setWobblerFormDefaults() {
-      document.querySelector("#modalTitle").textContent = "Ny wobbler";
-      document.querySelector("#saveWobblerBtn").textContent = "Lagre registrering";
-      document.querySelector("#deleteWobblerInModalBtn").hidden = true;
-      document.querySelector("#formType").value = "Flytende";
-      document.querySelector("#formOwner").value = "Rapala Shadow Rap";
-      document.querySelector("#formVessel").value = "7 cm";
-      document.querySelector("#formColor1").value = "Sølv";
-      document.querySelector("#formColor2").value = "Blå";
-      document.querySelector("#formColor3").value = "Oransje";
-      document.querySelector("#formPattern").value = "Fiskmønster";
-      document.querySelector("#formMarking").value = "Går best ved rolig innsveiving.";
-    }
-
-    function populateWobblerForm(item) {
-      document.querySelector("#modalTitle").textContent = "Rediger wobbler";
-      document.querySelector("#saveWobblerBtn").textContent = "Lagre endringer";
-      document.querySelector("#deleteWobblerInModalBtn").hidden = false;
-      document.querySelector("#formType").value = item.type;
-      document.querySelector("#formOwner").value = item.owner;
-      document.querySelector("#formVessel").value = item.vessel;
-      document.querySelector("#formColor1").value = item.colors?.[0] || "Sølv";
-      document.querySelector("#formColor2").value = item.colors?.[1] || "Blå";
-      document.querySelector("#formColor3").value = item.colors?.[2] || "Oransje";
-      document.querySelector("#formPattern").value = item.pattern || "Fiskmønster";
-      document.querySelector("#formMarking").value = item.marking || "";
-    }
-
-    function openModal(mode = "new") {
-      closeAllModals();
-      editingWobblerId = mode === "edit" ? selectedId : null;
-      const item = gear.find(entry => entry.id === editingWobblerId);
-      item ? populateWobblerForm(item) : setWobblerFormDefaults();
-      modal.hidden = false;
-      modal.classList.add("open");
-      document.querySelector("#formOwner").focus();
-    }
-
-    function closeModal() {
-      modal.classList.remove("open");
-      modal.hidden = true;
-      editingWobblerId = null;
-    }
-
-    function openCatchModal() {
-      closeAllModals();
-      renderWobblerOptions();
-      if (!document.querySelector("#catchWobbler").value) {
-        alert("Registrer en wobbler for denne brukeren først.");
-        return;
-      }
-      document.querySelector("#catchPosition").value = "";
-      document.querySelector("#catchPositionStatus").textContent = "Ikke valgt";
-      catchModal.hidden = false;
-      catchModal.classList.add("open");
-      document.querySelector("#catchPlace").focus();
+    function openCatchModal(id = "") {
+      editingCatchId = id;
+      const item = catches.find(entry => entry.id === id && entry.createdBy === currentUser);
+      elements.catchModalTitle.textContent = item ? "Rediger fangst" : "Ny fangst";
+      elements.saveCatchBtn.textContent = item ? "Lagre endringer" : "Lagre fangst";
+      elements.catchDate.value = item ? item.date : localDateString();
+      elements.catchTime.value = item ? item.timeOfDay : timeOfDayNow();
+      elements.catchPosition.value = item ? item.position : "";
+      elements.catchWeight.value = item ? item.weightGrams : 500;
+      elements.catchWeather.value = item ? item.weatherType : "Overskyet";
+      elements.catchTemperature.value = item ? item.temperatureCelsius : 10;
+      elements.catchNote.value = item ? item.note : "";
+      updatePositionStatus();
+      elements.catchModal.hidden = false;
+      setTimeout(() => (item ? elements.catchDate : elements.choosePositionBtn).focus(), 0);
     }
 
     function closeCatchModal() {
-      catchModal.classList.remove("open");
-      catchModal.hidden = true;
+      elements.catchModal.hidden = true;
+      editingCatchId = "";
+    }
+
+    function deleteCatch(id) {
+      const item = catches.find(entry => entry.id === id && entry.createdBy === currentUser);
+      if (!item || !confirm("Slette denne fangsten?")) return;
+      catches = catches.filter(entry => entry.id !== id);
+      const newest = latestCatch(mine());
+      selectedCatchId = newest ? newest.id : "";
+      saveData();
+      renderAll();
+    }
+
+    function submitCatch(event) {
+      event.preventDefault();
+      const position = normalizeMapPosition(elements.catchPosition.value);
+      if (!position) {
+        elements.catchPositionStatus.textContent = "Velg posisjon i kartet før du lagrer.";
+        elements.catchPositionStatus.classList.add("error");
+        openMapPicker();
+        return;
+      }
+      const catchData = normalizeCatch({
+        id: editingCatchId || createId(),
+        date: elements.catchDate.value,
+        timeOfDay: elements.catchTime.value,
+        position,
+        createdBy: currentUser,
+        weightGrams: elements.catchWeight.value,
+        weatherType: elements.catchWeather.value,
+        temperatureCelsius: elements.catchTemperature.value,
+        note: elements.catchNote.value.trim(),
+        createdAt: (catches.find(item => item.id === editingCatchId) || {}).createdAt || Date.now()
+      });
+
+      if (editingCatchId) {
+        const index = catches.findIndex(item => item.id === editingCatchId && item.createdBy === currentUser);
+        if (index >= 0) catches[index] = catchData;
+      } else {
+        catches.push(catchData);
+      }
+
+      selectedCatchId = catchData.id;
+      saveData();
+      closeCatchModal();
+      setView("catches");
+      renderAll();
     }
 
     function clampMapValue(value) {
@@ -2395,7 +1825,7 @@
     }
 
     function parseGpsPosition(position) {
-      const match = String(position).match(/(-?\d+(?:\.\d+)?)\s*N,\s*(-?\d+(?:\.\d+)?)\s*E/i);
+      const match = String(position || "").match(/(-?\d+(?:\.\d+)?)\s*N,\s*(-?\d+(?:\.\d+)?)\s*E/i);
       if (!match) return null;
       return { lat: Number(match[1]), lon: Number(match[2]) };
     }
@@ -2405,20 +1835,19 @@
     }
 
     function positionToMapPoint(position) {
-      const legacyMatch = String(position).match(/Kartpunkt\s+([\d.]+)%,\s*([\d.]+)%/i);
-      if (legacyMatch) {
-        return {
-          x: clampMapValue(Number(legacyMatch[1])),
-          y: clampMapValue(Number(legacyMatch[2]))
-        };
-      }
-
       const gps = parseGpsPosition(position);
       if (!gps) return { x: 50, y: 50 };
-
       const x = ((gps.lon - MAP_BOUNDS.topLeftLon) / (MAP_BOUNDS.bottomRightLon - MAP_BOUNDS.topLeftLon)) * 100;
       const y = ((MAP_BOUNDS.topLeftLat - gps.lat) / (MAP_BOUNDS.topLeftLat - MAP_BOUNDS.bottomRightLat)) * 100;
       return { x: clampMapValue(x), y: clampMapValue(y) };
+    }
+
+    function positionToVisibleMapPoint(position) {
+      const point = positionToMapPoint(position);
+      return {
+        x: Math.max(2, Math.min(98, point.x)),
+        y: Math.max(4, Math.min(97, point.y))
+      };
     }
 
     function mapPointToPosition(x, y) {
@@ -2431,227 +1860,106 @@
 
     function normalizeMapPosition(position) {
       if (!position) return "";
-      if (parseGpsPosition(position)) return position;
-      const legacyMatch = String(position).match(/Kartpunkt\s+([\d.]+)%,\s*([\d.]+)%/i);
-      if (!legacyMatch) return "";
-      const point = positionToMapPoint(position);
-      return mapPointToPosition(point.x, point.y);
-    }
-
-    function mapPositionStatus(position) {
-      return normalizeMapPosition(position) ? "Posisjon valgt i kart" : "Ikke valgt";
+      if (parseGpsPosition(position)) return String(position);
+      const previous = String(position).match(/Kartpunkt\s+([\d.]+)%,\s*([\d.]+)%/i);
+      return previous ? mapPointToPosition(Number(previous[1]), Number(previous[2])) : "";
     }
 
     function setPickerPosition(position) {
-      selectedMapPosition = normalizeMapPosition(position) || MAP_CENTER_POSITION;
-      const point = positionToMapPoint(selectedMapPosition);
-      document.querySelector("#pickerPin").style.left = `${point.x}%`;
-      document.querySelector("#pickerPin").style.top = `${point.y}%`;
-      document.querySelector("#pickerReadout").textContent = "Posisjon valgt i kart";
+      selectedMapPosition = normalizeMapPosition(position) || MAP_CENTER;
+      const point = positionToVisibleMapPoint(selectedMapPosition);
+      elements.pickerPin.style.left = `${point.x}%`;
+      elements.pickerPin.style.top = `${point.y}%`;
+      elements.pickerReadout.textContent = selectedMapPosition;
     }
 
-    function openMapPicker(targetId) {
-      mapTargetInput = document.querySelector(`#${targetId}`);
-      const currentPosition = mapTargetInput?.value || selectedMapPosition;
-      setPickerPosition(currentPosition);
-      mapModal.hidden = false;
-      mapModal.classList.add("open");
+    function openMapPicker() {
+      setPickerPosition(elements.catchPosition.value || MAP_CENTER);
+      elements.mapModal.hidden = false;
     }
 
     function closeMapPicker() {
-      mapModal.classList.remove("open");
-      mapModal.hidden = true;
-      mapTargetInput = null;
+      elements.mapModal.hidden = true;
     }
 
-    function closeAllModals() {
-      [modal, catchModal, mapModal].forEach(dialog => {
-        dialog.classList.remove("open");
-        dialog.hidden = true;
-      });
-      mapTargetInput = null;
+    function updatePositionStatus() {
+      const position = normalizeMapPosition(elements.catchPosition.value);
+      elements.catchPositionStatus.textContent = position || "Ikke valgt";
+      elements.catchPositionStatus.classList.remove("error");
     }
 
-    [search, typeFilter].forEach(control => {
-      control.addEventListener("input", () => {
-        renderStats();
-        renderTable();
-      });
-    });
-    [catchSearch, catchTimeFilter, catchWobblerFilter].forEach(control => {
-      control.addEventListener("input", renderCatchTable);
-    });
-
-    loginForm.addEventListener("submit", event => {
+    elements.loginForm.addEventListener("submit", event => {
       event.preventDefault();
-      showAppForUser(loginUser.value);
+      showApp(elements.loginUser.value);
     });
-    switchUserBtn.addEventListener("click", () => {
+
+    document.querySelector("#switchUserBtn").addEventListener("click", () => {
       localStorage.removeItem(USER_KEY);
       currentUser = "";
       showLogin();
     });
-    document.querySelector("#homeLogoBtn").addEventListener("click", () => {
-      closeAllModals();
+
+    document.querySelector("#brandBtn").addEventListener("click", () => {
+      closeCatchModal();
+      closeMapPicker();
       showLogin();
     });
-    document.querySelector("#wobblerTab").addEventListener("click", () => setView("wobblers"));
-    document.querySelector("#catchTab").addEventListener("click", () => setView("catches"));
-    document.querySelectorAll("[data-overview]").forEach(card => {
-      card.addEventListener("click", () => showOverview(card.dataset.overview));
-      card.addEventListener("keydown", event => {
-        if (event.key === "Enter" || event.key === " ") showOverview(card.dataset.overview);
-      });
+    document.querySelectorAll("[data-view]").forEach(button => {
+      button.addEventListener("click", () => setView(button.dataset.view));
     });
-    document.querySelectorAll("[data-catch-overview]").forEach(card => {
-      card.addEventListener("click", () => showCatchOverview(card.dataset.catchOverview));
-      card.addEventListener("keydown", event => {
-        if (event.key === "Enter" || event.key === " ") showCatchOverview(card.dataset.catchOverview);
-      });
+    document.querySelectorAll("[data-new-catch]").forEach(button => {
+      button.addEventListener("click", () => openCatchModal());
     });
-    document.querySelector("#openModalBtn").addEventListener("click", () => {
-      activeView === "wobblers" ? openModal() : openCatchModal();
+    document.querySelector("#newCatchBtn").addEventListener("click", () => openCatchModal());
+
+    [elements.searchInput, elements.timeFilter, elements.weatherFilter].forEach(control => {
+      control.addEventListener("input", renderList);
     });
-    document.querySelector("#closeModalBtn").addEventListener("click", closeModal);
-    document.querySelector("#cancelModalBtn").addEventListener("click", closeModal);
+
+    elements.mapYearFilter.addEventListener("change", renderMap);
+    document.querySelectorAll("[data-map-user]").forEach(input => {
+      input.addEventListener("change", renderMap);
+    });
+
+    elements.catchForm.addEventListener("submit", submitCatch);
     document.querySelector("#closeCatchModalBtn").addEventListener("click", closeCatchModal);
     document.querySelector("#cancelCatchModalBtn").addEventListener("click", closeCatchModal);
+    document.querySelector("#choosePositionBtn").addEventListener("click", openMapPicker);
+    document.querySelector("#clearPositionBtn").addEventListener("click", () => {
+      elements.catchPosition.value = "";
+      updatePositionStatus();
+    });
+
     document.querySelector("#closeMapModalBtn").addEventListener("click", closeMapPicker);
     document.querySelector("#cancelMapModalBtn").addEventListener("click", closeMapPicker);
-    document.querySelectorAll("[data-map-target]").forEach(button => {
-      button.addEventListener("click", () => openMapPicker(button.dataset.mapTarget));
+    document.querySelector("#useMapPositionBtn").addEventListener("click", () => {
+      elements.catchPosition.value = selectedMapPosition;
+      updatePositionStatus();
+      closeMapPicker();
     });
-    document.querySelector("#pickerMap").addEventListener("click", event => {
-      const rect = event.currentTarget.getBoundingClientRect();
+
+    elements.pickerMap.addEventListener("click", event => {
+      const rect = elements.pickerMap.getBoundingClientRect();
       const x = ((event.clientX - rect.left) / rect.width) * 100;
       const y = ((event.clientY - rect.top) / rect.height) * 100;
       setPickerPosition(mapPointToPosition(x, y));
     });
-    document.querySelector("#useMapPositionBtn").addEventListener("click", () => {
-      if (mapTargetInput) {
-        mapTargetInput.value = selectedMapPosition;
-        document.querySelector("#catchPositionStatus").textContent = mapPositionStatus(selectedMapPosition);
-      }
-      closeMapPicker();
+
+    [elements.catchModal, elements.mapModal].forEach(modal => {
+      modal.addEventListener("click", event => {
+        if (event.target !== modal) return;
+        modal === elements.catchModal ? closeCatchModal() : closeMapPicker();
+      });
     });
-    document.querySelector("#refreshBtn").addEventListener("click", () => {
-      renderTable();
-      renderCatchTable();
-      renderStats();
-    });
-    document.querySelector("#editBtn").addEventListener("click", () => {
-      if (activeView !== "wobblers") return;
-      openModal("edit");
-    });
-    document.querySelector("#deleteWobblerInModalBtn").addEventListener("click", () => {
-      if (!editingWobblerId) return;
-      const id = editingWobblerId;
-      closeModal();
-      deleteWobbler(id);
-    });
-    document.querySelector("#markLostBtn").addEventListener("click", () => {
-      if (activeView !== "wobblers") return;
-      if (selectedId) toggleLostWobbler(selectedId, true);
-    });
-    modal.addEventListener("click", event => {
-      if (event.target === modal) closeModal();
-    });
-    catchModal.addEventListener("click", event => {
-      if (event.target === catchModal) closeCatchModal();
-    });
-    mapModal.addEventListener("click", event => {
-      if (event.target === mapModal) closeMapPicker();
-    });
+
     document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeAllModals();
-    });
-
-    document.querySelector("#gearForm").addEventListener("submit", event => {
-      event.preventDefault();
-      const formData = {
-        type: document.querySelector("#formType").value,
-        owner: document.querySelector("#formOwner").value,
-        vessel: document.querySelector("#formVessel").value,
-        marking: document.querySelector("#formMarking").value,
-        colors: [
-          document.querySelector("#formColor1").value,
-          document.querySelector("#formColor2").value,
-          document.querySelector("#formColor3").value
-        ],
-        pattern: document.querySelector("#formPattern").value
-      };
-
-      if (editingWobblerId) {
-        const item = gear.find(entry => entry.id === editingWobblerId);
-        if (!item) return;
-        Object.assign(item, formData);
-        item.events.unshift("Wobbler redigert");
-        selectedId = item.id;
-      } else {
-        const newItem = {
-          id: `WB-2026-${String(Math.floor(150 + Math.random() * 700)).padStart(4, "0")}`,
-          ...formData,
-          createdBy: currentUser,
-          seen: "Nå",
-          lost: false,
-          events: ["Opprettet i prototypen", document.querySelector("#formMarking").value]
-        };
-        gear.unshift(newItem);
-        selectedId = newItem.id;
-      }
-      saveData();
-      closeModal();
-      renderWobblerOptions();
-      renderStats();
-      selectGear(selectedId);
-    });
-
-    document.querySelector("#catchForm").addEventListener("submit", event => {
-      event.preventDefault();
-      const newCatch = {
-        id: `FC-2026-${String(Math.floor(10 + Math.random() * 900)).padStart(4, "0")}`,
-        date: document.querySelector("#catchDate").value,
-        timeOfDay: document.querySelector("#catchTime").value,
-        place: document.querySelector("#catchPlace").value,
-        position: normalizeMapPosition(document.querySelector("#catchPosition").value),
-        gearId: document.querySelector("#catchWobbler").value,
-        createdBy: currentUser,
-        weightGrams: normalizeWeightGrams(document.querySelector("#catchWeight").value),
-        weatherType: document.querySelector("#catchWeather").value,
-        temperatureCelsius: normalizeTemperatureCelsius(document.querySelector("#catchTemperature").value),
-        note: document.querySelector("#catchNote").value
-      };
-      catches.unshift(newCatch);
-      const wobbler = gear.find(item => item.id === newCatch.gearId);
-      if (wobbler) {
-        wobbler.seen = newCatch.date;
-        wobbler.events.unshift(`Fangst logget ${newCatch.date}: ${formatWeightGrams(newCatch.weightGrams)}`);
-      }
-      if (activeView === "catches") catchOverview = "week";
-      saveData();
-      closeCatchModal();
-      renderStats();
-      renderTable();
-      renderCatchTable();
-      if (activeView === "catches") {
-        selectCatch(newCatch.id);
-      } else {
-        selectGear(newCatch.gearId);
-      }
+      if (event.key !== "Escape") return;
+      if (!elements.mapModal.hidden) closeMapPicker();
+      else if (!elements.catchModal.hidden) closeCatchModal();
     });
 
     testStorage();
-    loadSavedData();
-    ensureDefaultTestData();
-    selectedId = filteredGear()[0]?.id || gear.find(belongsToCurrentUser)?.id || "";
-    selectedCatchId = latestCatch(catches)?.id || "";
-    closeAllModals();
-    renderColorOptions();
-    renderPatternOptions();
-    renderWobblerOptions();
-    renderStats();
-    renderCatchTable();
-    selectGear(selectedId);
+    loadData();
     loadCurrentUser();
   </script>
 </body>
