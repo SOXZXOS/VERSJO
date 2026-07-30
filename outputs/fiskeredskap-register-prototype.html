@@ -700,6 +700,70 @@
       margin-top: 16px;
     }
 
+    .feedback-section {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 0 28px 52px;
+      padding-right: calc(28px + env(safe-area-inset-right));
+      padding-bottom: calc(52px + env(safe-area-inset-bottom));
+      padding-left: calc(28px + env(safe-area-inset-left));
+    }
+
+    .feedback-card {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.75fr) minmax(320px, 1.25fr);
+      gap: 28px;
+      padding: 24px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .feedback-card h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.025em;
+    }
+
+    .feedback-card .intro {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .feedback-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .feedback-form textarea {
+      min-height: 124px;
+    }
+
+    .feedback-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .feedback-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .feedback-status.success {
+      color: #248a3d;
+      font-weight: 650;
+    }
+
+    .feedback-status.error {
+      color: var(--danger);
+      font-weight: 650;
+    }
+
     .catch-map {
       display: grid;
       min-height: 0;
@@ -947,6 +1011,17 @@
         padding-left: calc(18px + env(safe-area-inset-left));
       }
 
+      .feedback-section {
+        padding: 0 18px 40px;
+        padding-right: calc(18px + env(safe-area-inset-right));
+        padding-bottom: calc(40px + env(safe-area-inset-bottom));
+        padding-left: calc(18px + env(safe-area-inset-left));
+      }
+
+      .feedback-card {
+        grid-template-columns: 1fr;
+      }
+
       .workspace {
         grid-template-columns: 1fr;
       }
@@ -1049,6 +1124,15 @@
       }
 
       .map-action .primary-btn {
+        width: 100%;
+      }
+
+      .feedback-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .feedback-actions .primary-btn {
         width: 100%;
       }
 
@@ -1258,6 +1342,26 @@
           <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
       </section>
+
+      <section class="feedback-section" aria-labelledby="feedbackTitle">
+        <div class="feedback-card">
+          <div>
+            <p class="eyebrow">Hjelp oss å gjøre RegiVersj bedre</p>
+            <h2 id="feedbackTitle">Send en tilbakemelding</h2>
+            <p class="intro">Skriv kort hva som fungerer bra, eller hva du ønsker at vi skal endre.</p>
+          </div>
+          <form class="feedback-form" id="feedbackForm">
+            <div class="field">
+              <label for="feedbackMessage">Din tilbakemelding</label>
+              <textarea id="feedbackMessage" maxlength="1500" required placeholder="Skriv her …"></textarea>
+            </div>
+            <div class="feedback-actions">
+              <span class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></span>
+              <button class="primary-btn" type="submit" id="sendFeedbackBtn">Send tilbakemelding</button>
+            </div>
+          </form>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -1355,6 +1459,7 @@
     const PENDING_KEY = "regiversj.pendingChanges.v1";
     const SHARED_MIGRATION_KEY = "regiversj.sharedMigration.v1";
     const SHARED_API_URL = "/api/catches";
+    const FEEDBACK_API_URL = "/api/feedback";
     const USERS = ["Bjarne", "Knut Arne", "Frode"];
     const USER_COLORS = {
       "Bjarne": "#2a7bdf",
@@ -1416,7 +1521,11 @@
       mapModal: document.querySelector("#mapModal"),
       pickerMap: document.querySelector("#pickerMap"),
       pickerPin: document.querySelector("#pickerPin"),
-      pickerReadout: document.querySelector("#pickerReadout")
+      pickerReadout: document.querySelector("#pickerReadout"),
+      feedbackForm: document.querySelector("#feedbackForm"),
+      feedbackMessage: document.querySelector("#feedbackMessage"),
+      feedbackStatus: document.querySelector("#feedbackStatus"),
+      sendFeedbackBtn: document.querySelector("#sendFeedbackBtn")
     };
 
     function escapeHtml(value) {
@@ -1986,6 +2095,59 @@
       });
     }
 
+    async function submitFeedback(event) {
+      event.preventDefault();
+      const message = elements.feedbackMessage.value.trim();
+      if (message.length < 3) {
+        elements.feedbackStatus.textContent = "Skriv litt mer før du sender.";
+        elements.feedbackStatus.className = "feedback-status error";
+        elements.feedbackMessage.focus();
+        return;
+      }
+
+      elements.sendFeedbackBtn.disabled = true;
+      elements.sendFeedbackBtn.textContent = "Sender …";
+      elements.feedbackStatus.textContent = "";
+      elements.feedbackStatus.className = "feedback-status";
+
+      try {
+        const response = await fetch(FEEDBACK_API_URL, {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            id: `FB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+            createdBy: currentUser,
+            message,
+            page: activeView,
+            createdAt: Date.now()
+          })
+        });
+
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (error) {
+          result = {};
+        }
+        if (!response.ok) {
+          throw new Error(result.error || "Tilbakemeldingen kunne ikke lagres.");
+        }
+
+        elements.feedbackForm.reset();
+        elements.feedbackStatus.textContent = "Takk! Tilbakemeldingen er lagret.";
+        elements.feedbackStatus.className = "feedback-status success";
+      } catch (error) {
+        elements.feedbackStatus.textContent = "Kunne ikke sende nå. Prøv igjen om litt.";
+        elements.feedbackStatus.className = "feedback-status error";
+      } finally {
+        elements.sendFeedbackBtn.disabled = false;
+        elements.sendFeedbackBtn.textContent = "Send tilbakemelding";
+      }
+    }
+
     function clampMapValue(value) {
       return Math.max(0, Math.min(100, value));
     }
@@ -2088,6 +2250,7 @@
     });
 
     elements.catchForm.addEventListener("submit", submitCatch);
+    elements.feedbackForm.addEventListener("submit", submitFeedback);
     document.querySelector("#closeCatchModalBtn").addEventListener("click", closeCatchModal);
     document.querySelector("#cancelCatchModalBtn").addEventListener("click", closeCatchModal);
     document.querySelector("#choosePositionBtn").addEventListener("click", openMapPicker);

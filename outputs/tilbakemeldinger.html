@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>Tilbakemeldinger · RegiVersj</title>
+  <style>
+    :root {
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --paper: #f5f5f7;
+      --surface: #ffffff;
+      --line: rgba(0, 0, 0, 0.09);
+      --blue: #0071e3;
+      --blue-dark: #0066cc;
+      --danger: #ff3b30;
+      --shadow: 0 10px 32px rgba(0, 0, 0, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 28px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 245, 247, 0.88);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+    }
+
+    .brand strong {
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .back-link {
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    main {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 40px 28px 60px;
+      padding-right: calc(28px + env(safe-area-inset-right));
+      padding-bottom: calc(60px + env(safe-area-inset-bottom));
+      padding-left: calc(28px + env(safe-area-inset-left));
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 52px);
+      letter-spacing: -0.045em;
+    }
+
+    .intro {
+      max-width: 650px;
+      margin: 10px 0 28px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .login-card,
+    .table-card {
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .login-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      max-width: 620px;
+      padding: 20px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fbfbfd;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: 3px solid rgba(0, 113, 227, 0.22);
+      border-color: var(--blue);
+    }
+
+    button {
+      min-height: 48px;
+      align-self: end;
+      border: 0;
+      border-radius: 12px;
+      padding: 0 18px;
+      background: var(--blue);
+      color: white;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--blue-dark);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .status {
+      grid-column: 1 / -1;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.error {
+      color: var(--danger);
+      font-weight: 650;
+    }
+
+    .table-card {
+      overflow: hidden;
+      margin-top: 24px;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .table-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .table-header span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    td {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 170px;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      width: 130px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      width: 110px;
+    }
+
+    td:last-child {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty {
+      padding: 48px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding-right: 18px;
+        padding-left: 18px;
+      }
+
+      .brand strong {
+        font-size: 19px;
+      }
+
+      main {
+        padding: 28px 18px 44px;
+        padding-right: calc(18px + env(safe-area-inset-right));
+        padding-bottom: calc(44px + env(safe-area-inset-bottom));
+        padding-left: calc(18px + env(safe-area-inset-left));
+      }
+
+      .login-card {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .table-scroll {
+        overflow: visible;
+      }
+
+      table,
+      tbody {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        display: block;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      tbody tr:last-child {
+        border-bottom: 0;
+      }
+
+      td,
+      td:nth-child(1),
+      td:nth-child(2),
+      td:nth-child(3) {
+        display: block;
+        width: auto;
+        border: 0;
+        padding: 3px 0;
+      }
+
+      td::before {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 650;
+        text-transform: uppercase;
+        content: attr(data-label);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./fiskeredskap-register-prototype.html">
+      <img src="icon.svg" alt="">
+      <strong>RegiVersj</strong>
+    </a>
+    <a class="back-link" href="./fiskeredskap-register-prototype.html">Til appen</a>
+  </header>
+
+  <main>
+    <p class="eyebrow">Privat backoffice</p>
+    <h1>Tilbakemeldinger</h1>
+    <p class="intro">Her vises tilbakemeldingene som er sendt inn fra appen. Siden krever kode, og oversikten er ikke synlig for testbrukerne.</p>
+
+    <form class="login-card" id="adminForm">
+      <div class="field">
+        <label for="adminKey">Backoffice-kode</label>
+        <input id="adminKey" type="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" id="loadBtn">Vis tilbakemeldinger</button>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+    </form>
+
+    <section class="table-card" id="feedbackTableCard" hidden>
+      <header class="table-header">
+        <h2>Innsendte tilbakemeldinger</h2>
+        <span id="feedbackCount">0 tilbakemeldinger</span>
+      </header>
+      <div class="table-scroll" id="tableContainer"></div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "/api/feedback";
+    const SESSION_KEY = "regiversj.feedbackAdminKey";
+    const adminForm = document.querySelector("#adminForm");
+    const adminKey = document.querySelector("#adminKey");
+    const loadBtn = document.querySelector("#loadBtn");
+    const status = document.querySelector("#status");
+    const feedbackTableCard = document.querySelector("#feedbackTableCard");
+    const feedbackCount = document.querySelector("#feedbackCount");
+    const tableContainer = document.querySelector("#tableContainer");
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatDate(timestamp) {
+      const date = new Date(Number(timestamp));
+      if (Number.isNaN(date.getTime())) return "Ukjent dato";
+      return new Intl.DateTimeFormat("nb-NO", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(date);
+    }
+
+    function formatPage(value) {
+      return value === "map" ? "Kart" : "Fangster";
+    }
+
+    function renderFeedback(items) {
+      feedbackCount.textContent = `${items.length} ${items.length === 1 ? "tilbakemelding" : "tilbakemeldinger"}`;
+      if (!items.length) {
+        tableContainer.innerHTML = '<div class="empty">Ingen tilbakemeldinger er sendt inn ennå.</div>';
+        return;
+      }
+
+      tableContainer.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Dato</th>
+              <th>Bruker</th>
+              <th>Fra side</th>
+              <th>Tilbakemelding</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(item => `
+              <tr>
+                <td data-label="Dato">${escapeHtml(formatDate(item.createdAt))}</td>
+                <td data-label="Bruker">${escapeHtml(item.createdBy)}</td>
+                <td data-label="Fra side">${escapeHtml(formatPage(item.page))}</td>
+                <td data-label="Tilbakemelding">${escapeHtml(item.message)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function loadFeedback(event) {
+      if (event) event.preventDefault();
+      const key = adminKey.value.trim();
+      if (!key) return;
+
+      loadBtn.disabled = true;
+      loadBtn.textContent = "Henter …";
+      status.textContent = "";
+      status.className = "status";
+
+      try {
+        const response = await fetch(API_URL, {
+          cache: "no-store",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${key}`
+          }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Kunne ikke hente oversikten.");
+
+        sessionStorage.setItem(SESSION_KEY, key);
+        renderFeedback(Array.isArray(result.feedback) ? result.feedback : []);
+        feedbackTableCard.hidden = false;
+        status.textContent = "Oversikten er oppdatert.";
+      } catch (error) {
+        feedbackTableCard.hidden = true;
+        status.textContent = error.message === "Feil kode."
+          ? "Koden er feil. Prøv på nytt."
+          : "Kunne ikke hente tilbakemeldingene nå.";
+        status.className = "status error";
+      } finally {
+        loadBtn.disabled = false;
+        loadBtn.textContent = "Vis tilbakemeldinger";
+      }
+    }
+
+    adminForm.addEventListener("submit", loadFeedback);
+
+    const savedKey = sessionStorage.getItem(SESSION_KEY) || "";
+    if (savedKey) {
+      adminKey.value = savedKey;
+      loadFeedback();
+    }
+  </script>
+</body>
+</html>
