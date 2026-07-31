@@ -346,15 +346,15 @@
 
   <main>
     <p class="eyebrow">Privat backoffice</p>
-    <h1>Tilbakemeldinger</h1>
-    <p class="intro">Her vises tilbakemeldingene som er sendt inn fra appen. Siden krever kode, og oversikten er ikke synlig for testbrukerne.</p>
+    <h1>Backoffice</h1>
+    <p class="intro">Her vises tilbakemeldinger og historikk for fangstene. Siden krever kode, og oversikten er ikke synlig for testbrukerne.</p>
 
     <form class="login-card" id="adminForm">
       <div class="field">
         <label for="adminKey">Backoffice-kode</label>
         <input id="adminKey" type="password" required autocomplete="current-password">
       </div>
-      <button type="submit" id="loadBtn">Vis tilbakemeldinger</button>
+      <button type="submit" id="loadBtn">Vis oversikten</button>
       <span class="status" id="status" role="status" aria-live="polite"></span>
     </form>
 
@@ -365,10 +365,19 @@
       </header>
       <div class="table-scroll" id="tableContainer"></div>
     </section>
+
+    <section class="table-card" id="historyTableCard" hidden>
+      <header class="table-header">
+        <h2>Fangsthistorikk</h2>
+        <span id="historyCount">0 hendelser</span>
+      </header>
+      <div class="table-scroll" id="historyContainer"></div>
+    </section>
   </main>
 
   <script>
     const API_URL = "/api/feedback";
+    const HISTORY_API_URL = "/api/catches?history=1";
     const SESSION_KEY = "regiversj.feedbackAdminKey";
     const adminForm = document.querySelector("#adminForm");
     const adminKey = document.querySelector("#adminKey");
@@ -377,6 +386,9 @@
     const feedbackTableCard = document.querySelector("#feedbackTableCard");
     const feedbackCount = document.querySelector("#feedbackCount");
     const tableContainer = document.querySelector("#tableContainer");
+    const historyTableCard = document.querySelector("#historyTableCard");
+    const historyCount = document.querySelector("#historyCount");
+    const historyContainer = document.querySelector("#historyContainer");
 
     function escapeHtml(value) {
       return String(value == null ? "" : value)
@@ -398,6 +410,27 @@
 
     function formatPage(value) {
       return value === "map" ? "Kart" : "Fangster";
+    }
+
+    function formatAction(value) {
+      const labels = {
+        "opprettet": "Opprettet",
+        "oppdatert": "Oppdatert",
+        "slettet": "Slettet",
+        "gjenoppretting_blokkert": "Gjenoppretting stoppet",
+        "gammel_app_blokkert": "Gammel app stoppet"
+      };
+      return labels[value] || value || "Ukjent";
+    }
+
+    function formatSource(value) {
+      const labels = {
+        "form": "Registreringsskjema",
+        "sync": "Synkronisering",
+        "migration": "Gammel lokal lagring",
+        "unknown": "Ukjent"
+      };
+      return labels[value] || "Ukjent";
     }
 
     function renderFeedback(items) {
@@ -431,6 +464,39 @@
       `;
     }
 
+    function renderHistory(items) {
+      historyCount.textContent = `${items.length} ${items.length === 1 ? "hendelse" : "hendelser"}`;
+      if (!items.length) {
+        historyContainer.innerHTML = '<div class="empty">Ingen fangsthendelser er registrert ennå.</div>';
+        return;
+      }
+
+      historyContainer.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Tidspunkt</th>
+              <th>Bruker</th>
+              <th>Hendelse</th>
+              <th>Kilde</th>
+              <th>Fangstdato / ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(item => `
+              <tr>
+                <td data-label="Tidspunkt">${escapeHtml(formatDate(item.occurredAt))}</td>
+                <td data-label="Bruker">${escapeHtml(item.actor)}</td>
+                <td data-label="Hendelse">${escapeHtml(formatAction(item.action))}</td>
+                <td data-label="Kilde">${escapeHtml(formatSource(item.source))}</td>
+                <td data-label="Fangstdato / ID">${escapeHtml(item.catchDate || "Ukjent dato")}<br>${escapeHtml(item.catchId)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
     async function loadFeedback(event) {
       if (event) event.preventDefault();
       const key = adminKey.value.trim();
@@ -442,29 +508,40 @@
       status.className = "status";
 
       try {
-        const response = await fetch(API_URL, {
+        const requestOptions = {
           cache: "no-store",
           headers: {
             "Accept": "application/json",
             "Authorization": `Bearer ${key}`
           }
-        });
-        const result = await response.json();
+        };
+        const [response, historyResponse] = await Promise.all([
+          fetch(API_URL, requestOptions),
+          fetch(HISTORY_API_URL, requestOptions)
+        ]);
+        const [result, historyResult] = await Promise.all([
+          response.json(),
+          historyResponse.json()
+        ]);
         if (!response.ok) throw new Error(result.error || "Kunne ikke hente oversikten.");
+        if (!historyResponse.ok) throw new Error(historyResult.error || "Kunne ikke hente fangsthistorikken.");
 
         sessionStorage.setItem(SESSION_KEY, key);
         renderFeedback(Array.isArray(result.feedback) ? result.feedback : []);
+        renderHistory(Array.isArray(historyResult.events) ? historyResult.events : []);
         feedbackTableCard.hidden = false;
+        historyTableCard.hidden = false;
         status.textContent = "Oversikten er oppdatert.";
       } catch (error) {
         feedbackTableCard.hidden = true;
+        historyTableCard.hidden = true;
         status.textContent = error.message === "Feil kode."
           ? "Koden er feil. Prøv på nytt."
           : "Kunne ikke hente tilbakemeldingene nå.";
         status.className = "status error";
       } finally {
         loadBtn.disabled = false;
-        loadBtn.textContent = "Vis tilbakemeldinger";
+        loadBtn.textContent = "Vis oversikten";
       }
     }
 

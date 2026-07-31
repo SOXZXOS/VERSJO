@@ -1336,7 +1336,7 @@
           </div>
         </div>
         <div class="map-action">
-          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
+          <button class="primary-btn" type="button" id="editMapCatchBtn" hidden>Rediger</button>
         </div>
       </section>
 
@@ -1345,7 +1345,7 @@
           <h2 id="feedbackTitle">Send en tilbakemelding</h2>
           <form class="feedback-form" id="feedbackForm">
             <div class="field">
-              <textarea id="feedbackMessage" maxlength="1500" required aria-label="Din tilbakemelding" placeholder="Skriv kort hva som fungerer bra, eller hva du ønsker at vi skal endre."></textarea>
+              <textarea id="feedbackMessage" maxlength="1500" required aria-label="Din tilbakemelding" placeholder="Whadda you want, Mistah"></textarea>
             </div>
             <div class="feedback-actions">
               <span class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></span>
@@ -1445,11 +1445,10 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "regiversj.catches.v2";
-    const PREVIOUS_STORAGE_KEY = "wobblerregister.v1";
+    const STORAGE_KEY = "regiversj.catches.v3";
     const USER_KEY = "regiversj.currentUser";
-    const PENDING_KEY = "regiversj.pendingChanges.v1";
-    const SHARED_MIGRATION_KEY = "regiversj.sharedMigration.v1";
+    const PENDING_KEY = "regiversj.pendingChanges.v2";
+    const CLIENT_VERSION = "2026-07-31-1";
     const SHARED_API_URL = "/api/catches";
     const FEEDBACK_API_URL = "/api/feedback";
     const USERS = ["Bjarne", "Knut Arne", "Frode"];
@@ -1476,6 +1475,7 @@
     let storageWorks = false;
     let sharedStorageWorks = null;
     let sharedSyncPromise = null;
+    let catchSubmitInProgress = false;
 
     const elements = {
       app: document.querySelector("#app"),
@@ -1496,6 +1496,7 @@
       mapYearFilter: document.querySelector("#mapYearFilter"),
       mapResultCount: document.querySelector("#mapResultCount"),
       mapSummary: document.querySelector("#mapSummary"),
+      editMapCatchBtn: document.querySelector("#editMapCatchBtn"),
       storageStatus: document.querySelector("#storageStatus"),
       catchModal: document.querySelector("#catchModal"),
       catchModalTitle: document.querySelector("#catchModalTitle"),
@@ -1599,12 +1600,6 @@
           return;
         }
 
-        const previous = JSON.parse(localStorage.getItem(PREVIOUS_STORAGE_KEY) || "null");
-        if (previous && Array.isArray(previous.catches)) {
-          catches = previous.catches.map(normalizeCatch);
-          saveData();
-          return;
-        }
       } catch (error) {
         console.warn("Kunne ikke lese lagrede fangster", error);
       }
@@ -1702,17 +1697,31 @@
       if (!pending.length) return;
 
       const upserts = pending
-        .filter(item => item.type === "upsert" && item.catch)
-        .map(item => item.catch);
+        .filter(item => item.type === "upsert" && item.catch);
       const deletions = pending
-        .filter(item => item.type === "delete" && item.id)
-        .map(item => item.id);
+        .filter(item => item.type === "delete" && item.id);
 
       if (upserts.length) {
-        await sharedRequest("POST", { catches: upserts });
+        const sources = {};
+        upserts.forEach(item => {
+          sources[item.catch.id] = item.source || "sync";
+        });
+        await sharedRequest("POST", {
+          catches: upserts.map(item => item.catch),
+          sources,
+          clientVersion: CLIENT_VERSION
+        });
       }
       if (deletions.length) {
-        await sharedRequest("DELETE", { ids: deletions });
+        const deletedBy = {};
+        deletions.forEach(item => {
+          deletedBy[item.id] = item.deletedBy || currentUser;
+        });
+        await sharedRequest("DELETE", {
+          ids: deletions.map(item => item.id),
+          deletedBy,
+          clientVersion: CLIENT_VERSION
+        });
       }
       writePendingChanges([]);
     }
@@ -1730,30 +1739,17 @@
       return Array.from(merged.values());
     }
 
-    async function syncSharedData(options = {}) {
+    async function syncSharedData() {
       if (sharedSyncPromise) return sharedSyncPromise;
 
       sharedSyncPromise = (async () => {
         try {
-          const shouldMigrate = options.migrate
-            && localStorage.getItem(SHARED_MIGRATION_KEY) !== "done";
-
-          if (shouldMigrate) {
-            catches.forEach(item => {
-              queuePendingChange({ type: "upsert", catch: item });
-            });
-          }
-
           await flushPendingChanges();
           const result = await sharedRequest("GET");
           const remoteCatches = Array.isArray(result.catches)
             ? result.catches.map(normalizeCatch)
             : [];
           catches = mergePendingChanges(remoteCatches);
-
-          if (shouldMigrate) {
-            localStorage.setItem(SHARED_MIGRATION_KEY, "done");
-          }
 
           sharedStorageWorks = true;
           saveData();
@@ -1987,10 +1983,11 @@
 
       elements.mapResultCount.textContent = `${mapped.length} ${mapped.length === 1 ? "fangst" : "fangster"} på kartet`;
 
-      const selected = catches.find(item => item.id === selectedCatchId && item.position);
+      const selected = mapped.find(item => item.id === selectedCatchId);
       elements.mapSummary.innerHTML = selected
         ? `<div><strong>${selected.weightGrams} g fangst</strong><span>${escapeHtml(selected.createdBy)} · ${escapeHtml(formatDate(selected.date))}</span></div>`
         : `<span>${mapped.length ? "Trykk på et punkt for å se fangsten" : "Ingen fangster med kartposisjon"}</span>`;
+      elements.editMapCatchBtn.hidden = !selected || selected.createdBy !== currentUser;
     }
 
     function renderAll() {
@@ -2013,9 +2010,11 @@
 
     function openCatchModal(id = "") {
       editingCatchId = id;
+      catchSubmitInProgress = false;
       const item = catches.find(entry => entry.id === id && entry.createdBy === currentUser);
       elements.catchModalTitle.textContent = item ? "Rediger fangst" : "Ny fangst";
       elements.saveCatchBtn.textContent = item ? "Lagre endringer" : "Lagre fangst";
+      elements.saveCatchBtn.disabled = false;
       elements.catchDate.value = item ? item.date : localDateString();
       elements.catchTime.value = item ? item.timeOfDay : timeOfDayNow();
       elements.catchPosition.value = item ? item.position : "";
@@ -2039,7 +2038,7 @@
       catches = catches.filter(entry => entry.id !== id);
       const newest = latestCatch(mine());
       selectedCatchId = newest ? newest.id : "";
-      queuePendingChange({ type: "delete", id });
+      queuePendingChange({ type: "delete", id, deletedBy: currentUser, source: "form" });
       saveData();
       renderAll();
       syncSharedData().then(() => {
@@ -2049,6 +2048,7 @@
 
     function submitCatch(event) {
       event.preventDefault();
+      if (catchSubmitInProgress) return;
       const position = normalizeMapPosition(elements.catchPosition.value);
       if (!position) {
         elements.catchPositionStatus.textContent = "Velg posisjon i kartet før du lagrer.";
@@ -2056,6 +2056,9 @@
         openMapPicker();
         return;
       }
+      catchSubmitInProgress = true;
+      elements.saveCatchBtn.disabled = true;
+      elements.saveCatchBtn.textContent = "Lagrer …";
       const catchData = normalizeCatch({
         id: editingCatchId || createId(),
         date: elements.catchDate.value,
@@ -2077,7 +2080,7 @@
       }
 
       selectedCatchId = catchData.id;
-      queuePendingChange({ type: "upsert", catch: catchData });
+      queuePendingChange({ type: "upsert", catch: catchData, source: "form" });
       saveData();
       closeCatchModal();
       setView("catches");
@@ -2231,6 +2234,10 @@
       button.addEventListener("click", () => openCatchModal());
     });
     document.querySelector("#newCatchBtn").addEventListener("click", () => openCatchModal());
+    elements.editMapCatchBtn.addEventListener("click", () => {
+      const selected = catches.find(item => item.id === selectedCatchId && item.createdBy === currentUser);
+      if (selected) openCatchModal(selected.id);
+    });
 
     [elements.searchInput, elements.timeFilter, elements.weatherFilter].forEach(control => {
       control.addEventListener("input", renderList);
@@ -2282,7 +2289,7 @@
     testStorage();
     loadData();
     loadCurrentUser();
-    syncSharedData({ migrate: true });
+    syncSharedData();
 
     window.addEventListener("focus", () => syncSharedData());
     document.addEventListener("visibilitychange", () => {
