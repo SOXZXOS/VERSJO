@@ -1447,6 +1447,7 @@
   <script>
     const STORAGE_KEY = "regiversj.catches.v3";
     const USER_KEY = "regiversj.currentUser";
+    const SESSION_USER_KEY = "regiversj.sessionUser";
     const PENDING_KEY = "regiversj.pendingChanges.v2";
     const CLIENT_VERSION = "2026-07-31-1";
     const SHARED_API_URL = "/api/catches";
@@ -1787,6 +1788,7 @@
       if (!USERS.includes(userName)) return;
       currentUser = userName;
       localStorage.setItem(USER_KEY, userName);
+      sessionStorage.setItem(SESSION_USER_KEY, userName);
       elements.currentUserLabel.textContent = userName;
       elements.loginScreen.hidden = true;
       elements.app.hidden = false;
@@ -1799,10 +1801,16 @@
       const savedUser = localStorage.getItem(USER_KEY) || "";
       if (USERS.includes(savedUser)) {
         elements.loginUser.value = savedUser;
-        showApp(savedUser);
-      } else {
-        showLogin();
       }
+
+      const sessionUser = sessionStorage.getItem(SESSION_USER_KEY) || "";
+      if (USERS.includes(sessionUser)) {
+        elements.loginUser.value = sessionUser;
+        showApp(sessionUser);
+        return;
+      }
+
+      showLogin();
     }
 
     function mine() {
@@ -2217,7 +2225,7 @@
     });
 
     document.querySelector("#switchUserBtn").addEventListener("click", () => {
-      localStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(SESSION_USER_KEY);
       currentUser = "";
       showLogin();
     });
@@ -2225,6 +2233,8 @@
     document.querySelector("#brandBtn").addEventListener("click", () => {
       closeCatchModal();
       closeMapPicker();
+      sessionStorage.removeItem(SESSION_USER_KEY);
+      currentUser = "";
       showLogin();
     });
     document.querySelectorAll("[data-view]").forEach(button => {
