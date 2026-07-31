@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f5f7">
+  <meta name="theme-color" content="#f2f6f4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="RegiVersj">
   <title>RegiVersj</title>
   <style>
     :root {
-      --ink: #1d1d1f;
-      --muted: #6e6e73;
-      --paper: #f5f5f7;
+      --ink: #16231f;
+      --muted: #61716b;
+      --paper: #f2f6f4;
       --surface: #ffffff;
       --surface-strong: #ffffff;
-      --line: rgba(0, 0, 0, 0.09);
-      --green: #0071e3;
-      --green-dark: #0066cc;
-      --green-soft: #eaf4ff;
-      --blue: #0071e3;
-      --yellow: #ffcc00;
-      --danger: #ff3b30;
-      --shadow: 0 10px 32px rgba(0, 0, 0, 0.07);
+      --line: rgba(20, 72, 58, 0.11);
+      --green: #087f6a;
+      --green-dark: #066754;
+      --green-soft: #e7f4ef;
+      --blue: #0b7181;
+      --yellow: #d9ad3e;
+      --danger: #e5483f;
+      --shadow: 0 12px 34px rgba(18, 63, 51, 0.07);
       --radius: 20px;
     }
 
@@ -61,7 +61,7 @@
     input:focus-visible,
     select:focus-visible,
     textarea:focus-visible {
-      outline: 3px solid rgba(42, 111, 187, 0.26);
+      outline: 3px solid rgba(8, 127, 106, 0.24);
       outline-offset: 2px;
     }
 
@@ -81,7 +81,7 @@
       padding-bottom: calc(24px + env(safe-area-inset-bottom));
       padding-left: calc(24px + env(safe-area-inset-left));
       background:
-        linear-gradient(135deg, rgba(0, 113, 227, 0.92), rgba(88, 86, 214, 0.76)),
+        linear-gradient(135deg, rgba(6, 103, 84, 0.92), rgba(11, 113, 129, 0.78)),
         url("vergetjern-kart.png") center / cover;
     }
 
@@ -138,7 +138,7 @@
       padding-right: calc(28px + env(safe-area-inset-right));
       padding-left: calc(28px + env(safe-area-inset-left));
       border-bottom: 1px solid var(--line);
-      background: rgba(245, 245, 247, 0.86);
+      background: rgba(242, 246, 244, 0.88);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       backdrop-filter: saturate(180%) blur(20px);
     }
@@ -167,7 +167,7 @@
       padding: 5px;
       border: 0;
       border-radius: 999px;
-      background: rgba(118, 118, 128, 0.12);
+      background: rgba(8, 127, 106, 0.10);
     }
 
     .nav-btn {
@@ -184,7 +184,7 @@
     .nav-btn.active {
       background: var(--surface-strong);
       color: var(--ink);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+      box-shadow: 0 2px 8px rgba(18, 63, 51, 0.10);
     }
 
     .topbar-actions {
@@ -265,8 +265,8 @@
     .ghost-btn,
     .danger-btn,
     .icon-btn {
-      min-height: 44px;
-      border-radius: 12px;
+      min-height: 46px;
+      border-radius: 13px;
       padding: 0 16px;
       font-weight: 650;
       cursor: pointer;
@@ -284,7 +284,7 @@
       border: 0;
       background: var(--green);
       color: white;
-      box-shadow: 0 6px 16px rgba(0, 113, 227, 0.20);
+      box-shadow: 0 6px 16px rgba(8, 127, 106, 0.22);
     }
 
     .primary-btn:hover {
@@ -294,62 +294,39 @@
     .ghost-btn,
     .icon-btn {
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.88);
     }
 
     .danger-btn {
-      border: 0;
+      border: 1px solid var(--line);
       background: #fff0ef;
       color: var(--danger);
     }
 
     .icon-btn {
-      width: 44px;
+      width: 46px;
       padding: 0;
       font-size: 22px;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .stat {
-      min-height: 112px;
-      padding: 20px;
-      border: 0;
-      border-radius: var(--radius);
-      background: var(--surface);
-      box-shadow: var(--shadow);
-    }
-
-    .stat span {
-      display: block;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .stat strong {
-      display: block;
-      margin-top: 8px;
-      font-size: 36px;
-      font-weight: 720;
-      line-height: 1;
-    }
-
     .filters {
       display: grid;
-      grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(150px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 20px;
       padding: 14px;
-      border: 0;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: var(--shadow);
+    }
+
+    .filters .field {
+      min-width: 0;
+    }
+
+    .search-field {
+      grid-column: 1 / -1;
     }
 
     .field {
@@ -368,10 +345,10 @@
     .field textarea {
       width: 100%;
       min-height: 46px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 11px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
       padding: 10px 12px;
-      background: #fbfbfd;
+      background: #f7faf9;
       color: var(--ink);
     }
 
@@ -396,7 +373,7 @@
 
     .panel {
       overflow: hidden;
-      border: 0;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: var(--shadow);
@@ -433,7 +410,7 @@
       width: 100%;
       min-height: 92px;
       border: 0;
-      border-bottom: 1px solid #e6e9e3;
+      border-bottom: 1px solid var(--line);
       padding: 16px 20px;
       background: transparent;
       text-align: left;
@@ -445,12 +422,12 @@
     }
 
     .catch-row:hover {
-      background: #f5f8f3;
+      background: #f4f9f7;
     }
 
     .catch-row.selected {
       background: var(--green-soft);
-      box-shadow: inset 4px 0 var(--green);
+      box-shadow: inset 3px 0 var(--green);
     }
 
     .catch-date {
@@ -482,8 +459,8 @@
       justify-self: end;
       padding: 7px 10px;
       border-radius: 999px;
-      background: #eaf4ff;
-      color: var(--blue);
+      background: var(--green-soft);
+      color: var(--green-dark);
       font-size: 13px;
       font-weight: 700;
     }
@@ -511,7 +488,7 @@
       padding: 22px;
       color: white;
       background:
-        linear-gradient(135deg, rgba(0, 102, 204, 0.96), rgba(88, 86, 214, 0.76)),
+        linear-gradient(135deg, rgba(6, 103, 84, 0.96), rgba(11, 113, 129, 0.78)),
         url("vergetjern-kart.png") center / cover;
     }
 
@@ -628,6 +605,7 @@
       gap: 22px;
       margin-bottom: 16px;
       padding: 16px 18px;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: var(--shadow);
@@ -667,9 +645,10 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 0 13px;
-      background: #fbfbfd;
+      background: #f7faf9;
       font-size: 13px;
       font-weight: 600;
+      white-space: nowrap;
       cursor: pointer;
     }
 
@@ -677,7 +656,7 @@
       width: 17px;
       height: 17px;
       margin: 0;
-      accent-color: var(--blue);
+      accent-color: var(--green);
     }
 
     .check-color {
@@ -688,7 +667,7 @@
 
     .map-shell {
       overflow: hidden;
-      border: 0;
+      border: 1px solid var(--line);
       border-radius: 24px;
       background: var(--surface);
       box-shadow: var(--shadow);
@@ -715,6 +694,7 @@
       gap: 20px;
       align-items: start;
       padding: 18px 20px;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: var(--shadow);
@@ -764,7 +744,7 @@
       min-height: 0;
       place-items: center;
       padding: 20px;
-      background: #e9edf2;
+      background: #e7efec;
     }
 
     .catch-map-canvas {
@@ -775,7 +755,7 @@
       aspect-ratio: 559 / 717;
       border-radius: 16px;
       background: #dce8df url("vergetjern-kart.png") center / 100% 100% no-repeat;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+      box-shadow: 0 8px 28px rgba(18, 63, 51, 0.13);
     }
 
     .map-toolbar {
@@ -865,7 +845,7 @@
       z-index: 4;
       width: 15px;
       height: 15px;
-      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.20), 0 2px 7px rgba(0, 0, 0, 0.32);
+      box-shadow: 0 0 0 3px rgba(8, 127, 106, 0.20), 0 2px 7px rgba(0, 0, 0, 0.32);
     }
 
     .modal {
@@ -887,7 +867,7 @@
       overflow: auto;
       border: 1px solid rgba(255, 255, 255, 0.72);
       border-radius: 24px;
-      background: #f5f5f7;
+      background: var(--paper);
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
     }
 
@@ -901,7 +881,7 @@
       gap: 20px;
       padding: 19px 22px;
       border-bottom: 1px solid var(--line);
-      background: rgba(245, 245, 247, 0.92);
+      background: rgba(242, 246, 244, 0.93);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       backdrop-filter: saturate(180%) blur(20px);
     }
@@ -1046,25 +1026,23 @@
         width: 100%;
       }
 
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .stat {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 72px;
-      }
-
-      .stat strong {
-        margin: 0;
-        font-size: 30px;
-      }
-
-      .filters,
       .form-grid {
         grid-template-columns: 1fr;
+      }
+
+      .filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .filters .field {
+        gap: 5px;
+      }
+
+      .filters .field select {
+        padding-right: 4px;
+        padding-left: 6px;
       }
 
       .field input,
@@ -1141,6 +1119,33 @@
 
       .map-year-field {
         width: 100%;
+      }
+
+      .user-checkboxes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .check-pill {
+        justify-content: center;
+        min-width: 0;
+        min-height: 38px;
+        gap: 3px;
+        padding: 0 3px;
+        font-size: clamp(10px, 3.2vw, 12px);
+      }
+
+      .check-pill input {
+        flex: 0 0 auto;
+        width: 14px;
+        height: 14px;
+      }
+
+      .check-color {
+        flex: 0 0 auto;
+        width: 6px;
+        height: 6px;
       }
 
       .catch-map {
@@ -1220,23 +1225,20 @@
       <section class="page" id="catchPage">
         <div class="page-heading">
           <div>
-            <p class="eyebrow">Din fangstlogg</p>
             <h2>Fangster</h2>
-            <p class="intro">Samle vekt, vær, notater og kartposisjon på ett sted.</p>
           </div>
-          <button class="primary-btn" type="button" data-new-catch>+ Registrer fangst</button>
         </div>
 
-        <section class="stats" aria-label="Fangststatistikk">
-          <article class="stat"><span>Mine fangster</span><strong id="statTotal">0</strong></article>
-          <article class="stat"><span>Siste 7 dager</span><strong id="statWeek">0</strong></article>
-          <article class="stat"><span>Med kartposisjon</span><strong id="statMapped">0</strong></article>
-        </section>
-
         <section class="filters" aria-label="Filtrer fangster">
-          <div class="field">
+          <div class="field search-field">
             <label for="searchInput">Søk</label>
             <input id="searchInput" type="search" placeholder="Dato, vær eller notat">
+          </div>
+          <div class="field">
+            <label for="yearFilter">År</label>
+            <select id="yearFilter">
+              <option value="">Alle år</option>
+            </select>
           </div>
           <div class="field">
             <label for="timeFilter">Tid på døgnet</label>
@@ -1291,9 +1293,7 @@
       <section class="page map-page" id="mapPage" hidden>
         <div class="page-heading">
           <div>
-            <p class="eyebrow">Alle registrerte posisjoner</p>
             <h2>Fangstkart</h2>
-            <p class="intro">Punktene viser de delte fangstene fra alle fiskerne.</p>
           </div>
         </div>
 
@@ -1309,17 +1309,17 @@
             <div class="user-checkboxes">
               <label class="check-pill">
                 <input type="checkbox" value="Bjarne" data-map-user checked>
-                <i class="check-color" style="background:#2a7bdf"></i>
+                <i class="check-color" style="background:#0b7181"></i>
                 Bjarne
               </label>
               <label class="check-pill">
                 <input type="checkbox" value="Knut Arne" data-map-user checked>
-                <i class="check-color" style="background:#1d1d1f"></i>
+                <i class="check-color" style="background:#16231f"></i>
                 Knut Arne
               </label>
               <label class="check-pill">
                 <input type="checkbox" value="Frode" data-map-user checked>
-                <i class="check-color" style="background:#ffcc00"></i>
+                <i class="check-color" style="background:#d9ad3e"></i>
                 Frode
               </label>
             </div>
@@ -1453,9 +1453,9 @@
     const FEEDBACK_API_URL = "/api/feedback";
     const USERS = ["Bjarne", "Knut Arne", "Frode"];
     const USER_COLORS = {
-      "Bjarne": "#2a7bdf",
-      "Knut Arne": "#15211c",
-      "Frode": "#e7bd45"
+      "Bjarne": "#0b7181",
+      "Knut Arne": "#16231f",
+      "Frode": "#d9ad3e"
     };
     const WEATHER_OPTIONS = ["Klarvær", "Lettskyet", "Overskyet", "Tåke", "Yr", "Regn", "Sludd", "Snø", "Torden"];
     const MAP_BOUNDS = {
@@ -1490,6 +1490,7 @@
       detailPanel: document.querySelector("#detailPanel"),
       resultCount: document.querySelector("#resultCount"),
       searchInput: document.querySelector("#searchInput"),
+      yearFilter: document.querySelector("#yearFilter"),
       timeFilter: document.querySelector("#timeFilter"),
       weatherFilter: document.querySelector("#weatherFilter"),
       catchMap: document.querySelector("#catchMap"),
@@ -1817,6 +1818,7 @@
 
     function filteredCatches() {
       const query = elements.searchInput.value.trim().toLowerCase();
+      const year = elements.yearFilter.value;
       const time = elements.timeFilter.value;
       const weather = elements.weatherFilter.value;
 
@@ -1826,6 +1828,7 @@
             .join(" ")
             .toLowerCase();
           return (!query || haystack.includes(query))
+            && (!year || String(item.date).startsWith(year))
             && (!time || item.timeOfDay === time)
             && (!weather || item.weatherType === weather);
         })
@@ -1835,21 +1838,18 @@
         });
     }
 
-    function isWithinLastWeek(item) {
-      const [year, month, day] = item.date.split("-").map(Number);
-      const catchDate = new Date(year, month - 1, day);
-      catchDate.setHours(0, 0, 0, 0);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const difference = today - catchDate;
-      return difference >= 0 && difference <= 6 * 24 * 60 * 60 * 1000;
-    }
+    function renderCatchFilters() {
+      const currentYear = elements.yearFilter.value;
+      const years = mine()
+        .map(item => String(item.date || "").slice(0, 4))
+        .filter(year => /^\d{4}$/.test(year))
+        .filter((year, index, list) => list.indexOf(year) === index)
+        .sort((a, b) => b.localeCompare(a));
 
-    function renderStats() {
-      const items = mine();
-      document.querySelector("#statTotal").textContent = items.length;
-      document.querySelector("#statWeek").textContent = items.filter(isWithinLastWeek).length;
-      document.querySelector("#statMapped").textContent = items.filter(item => item.position).length;
+      elements.yearFilter.innerHTML = `<option value="">Alle år</option>${years
+        .map(year => `<option value="${year}">${year}</option>`)
+        .join("")}`;
+      elements.yearFilter.value = years.includes(currentYear) ? currentYear : "";
     }
 
     function renderList() {
@@ -1991,7 +1991,7 @@
     }
 
     function renderAll() {
-      renderStats();
+      renderCatchFilters();
       renderList();
       renderMapFilters();
       renderMap();
@@ -2230,17 +2230,15 @@
     document.querySelectorAll("[data-view]").forEach(button => {
       button.addEventListener("click", () => setView(button.dataset.view));
     });
-    document.querySelectorAll("[data-new-catch]").forEach(button => {
-      button.addEventListener("click", () => openCatchModal());
-    });
     document.querySelector("#newCatchBtn").addEventListener("click", () => openCatchModal());
     elements.editMapCatchBtn.addEventListener("click", () => {
       const selected = catches.find(item => item.id === selectedCatchId && item.createdBy === currentUser);
       if (selected) openCatchModal(selected.id);
     });
 
-    [elements.searchInput, elements.timeFilter, elements.weatherFilter].forEach(control => {
-      control.addEventListener("input", renderList);
+    elements.searchInput.addEventListener("input", renderList);
+    [elements.yearFilter, elements.timeFilter, elements.weatherFilter].forEach(control => {
+      control.addEventListener("change", renderList);
     });
 
     elements.mapYearFilter.addEventListener("change", renderMap);
